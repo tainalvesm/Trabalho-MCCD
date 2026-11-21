@@ -1,0 +1,183 @@
+---
+title: "Além das notas: uma análise exploratória dos microdados do ENEM"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    theme: readable
+---
+
+# 1. Apresentação do projeto
+
+O Exame Nacional do Ensino Médio (ENEM) reúne informações importantes sobre o perfil dos participantes e a realidade educacional brasileira. Neste projeto, desenvolvido na disciplina de Métodos Computacionais para Ciências de Dados, serão explorados os microdados do ENEM referentes ao estado de Alagoas, contemplando características demográficas, socioeconômicas e escolares dos participantes, além de informações sobre as provas e seus respectivos desempenhos.
+
+A partir desses dados, pretende-se investigar possíveis relações entre o contexto social e educacional dos participantes e seus resultados no exame, buscando identificar padrões, diferenças entre grupos e aspectos relacionados às desigualdades educacionais.
+
+## 1.1 Objetivo geral
+
+Analisar os microdados do ENEM no estado de Alagoas, investigando possíveis associações entre características demográficas, socioeconômicas e educacionais dos participantes e seus desempenhos no exame. Busca-se identificar padrões e diferenças entre grupos, utilizando técnicas de exploração, visualização e análise estatística de dados, com o auxílio da linguagem R.
+
+## 1.2 Objetivos específicos
+
+- Explorar o perfil dos participantes do exame.
+- Investigar diferenças de desempenho entre grupos.
+- Analisar relações entre condições socioeconômicas e notas.
+- Investigar possíveis desigualdades relacionadas às características das escolas.
+- Explorar diferenças de desempenho nas competências da redação.
+
+# 2. Base de dados e preparação
+
+## 2.1 Descrição da base
+
+## 2.2 Seleção das variáveis
+
+## 2.3 Tratamento e limpeza dos dados
+
+## 2.4 Considerações sobre os dados ausentes
+
+# 3. Exploração inicial das variáveis
+
+## 3.1 Perfil dos participantes
+
+## 3.2 Características das escolas
+
+## 3.3 Perfil socioeconômico
+
+## 3.4 Trajetória escolar
+
+## 3.5 Desempenho nas provas
+
+# 4. Investigações e relações entre variáveis
+
+## 4.1 Sexo e desempenho
+
+**Perguntas de investigação:**
+
+- Qual é a distribuição dos participantes por sexo?
+- Existem diferenças de desempenho entre homens e mulheres?
+
+**Variáveis envolvidas:**
+
+- Sexo.
+- Notas das áreas do conhecimento.
+- Nota da redação.
+
+**Análises previstas:**
+
+- 
+
+**Responsável:**
+
+**Status:** Pendente.
+
+## 4.2 Características das escolas e desempenho
+
+**Perguntas de investigação:**
+
+- Existem diferenças entre escolas urbanas e rurais?
+- Existem diferenças entre as redes de ensino?
+- Como se comparam escolas estaduais urbanas e rurais?
+
+**Variáveis envolvidas:**
+
+- Localização da escola.
+- Dependência administrativa.
+- Notas das áreas do conhecimento.
+- Nota da redação.
+
+**Análises previstas:**
+
+- 
+
+**Responsável:**
+
+**Status:** Pendente.
+
+## 4.3 Trajetória escolar e desempenho
+
+**Perguntas de investigação:**
+
+- Existem diferenças entre quem está concluindo o ensino médio, quem já concluiu e os treineiros?
+- Como se comparam os resultados dos treineiros de escolas públicas e particulares?
+- Existe relação entre idade e desempenho?
+
+**Variáveis envolvidas:**
+
+- Situação de conclusão do ensino médio.
+- Ano de conclusão.
+- Indicador de treineiro.
+- Idade.
+- Dependência administrativa.
+- Notas.
+
+**Análises previstas:**
+
+- 
+
+**Responsável:**
+
+**Status:** Pendente.
+
+## 4.4 Condições socioeconômicas e desempenho
+
+**Perguntas de investigação:**
+
+- A renda familiar está associada ao desempenho?
+- A escolaridade dos pais está relacionada às notas?
+- As condições de moradia apresentam alguma relação com o desempenho?
+
+**Variáveis envolvidas:**
+
+- Renda familiar.
+- Escolaridade dos responsáveis.
+- Condições de moradia.
+- Notas das provas.
+
+**Análises previstas:**
+
+- 
+
+**Responsável:**
+
+**Status:** Pendente.
+
+## 4.5 Desempenho nas competências da redação
+
+**Perguntas de investigação:**
+
+- Quais competências apresentam maiores e menores médias?
+- Existem diferenças entre grupos nas competências?
+- As condições socioeconômicas estão relacionadas ao desempenho em competências específicas?
+
+**Variáveis envolvidas:**
+
+- Notas das cinco competências.
+- Nota total da redação.
+- Renda familiar.
+- Escolaridade dos responsáveis.
+- Características das escolas.
+
+**Análises previstas:**
+
+- 
+
+**Responsável:**
+
+**Status:** Pendente.
+
+# 5. Organização e divisão das atividades
+
+| Etapa                       | Responsável | Status   |
+|-----------------------------|-------------|----------|
+| Preparação da base          |             | Pendente |
+| Perfil dos participantes    |             | Pendente |
+| Sexo e desempenho           |             | Pendente |
+| Características das escolas |             | Pendente |
+| Trajetória escolar          |             | Pendente |
+| Condições socioeconômicas   |             | Pendente |
+| Competências da redação     |             | Pendente |
+
+# 6. Considerações e próximos passos
+
+Espaço para registrar as principais decisões do grupo, os resultados preliminares e as próximas etapas do trabalho.

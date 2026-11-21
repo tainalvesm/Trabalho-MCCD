@@ -4,9 +4,9 @@ library(dplyr)
 
 
 # Importando  o Dataset.
-dados_participantes <- read.csv("C:/Users/taina/Desktop/Participantes_AL.csv")
+dados_participantes <-  read.csv("Trabalho-MCCD/dados/Participantes_AL.csv")
 dados_participantes
-dados_resultados <- read.csv("C:/Users/taina/Desktop/Resultados_AL.csv")
+dados_resultados <-  read.csv("Trabalho-MCCD/dados/ITENS_PROVA_2024.csv", sep = ";")
 dados_resultados
 
 #Limpeza dos dados
