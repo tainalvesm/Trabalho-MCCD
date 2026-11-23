@@ -1,0 +1,76 @@
+:root {
+  --cor-principal: #244b5a;
+  --cor-secundaria: #4c7c78;
+  --cor-fundo: #f4f6f5;
+  --cor-cartao: #ffffff;
+  --cor-texto: #263238;
+}
+
+
+body {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: Arial, sans-serif;
+}
+
+
+.cabecalho {
+  background-color: var(--cor-principal);
+  color: white;
+
+  padding: 20px 30px;
+  margin-bottom: 25px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.pagina-inicio {
+  padding: 20px;
+}
+
+
+.mapa-placeholder {
+  background-color: #e1e9e7;
+  border: 2px dashed #8ba7a0;
+  border-radius: 12px;
+
+  min-height: 300px;
+  margin: 20px 0;
+  padding: 30px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.cartao-indicador {
+  background-color: var(--cor-cartao);
+
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 15px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+
+.btn {
+  background-color: var(--cor-principal);
+  color: white;
+
+  border: none;
+  border-radius: 7px;
+
+  padding: 10px 18px;
+  margin: 5px;
+}
+
+.btn:hover {
+  background-color: var(--cor-secundaria);
+  color: white;
+}
