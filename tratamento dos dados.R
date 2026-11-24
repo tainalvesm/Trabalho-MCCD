@@ -2,6 +2,58 @@ library(readr)
 library(tidyverse)
 library(dplyr)
 
+#paleta
+cor_principal  <- "#A6535D"
+cor_secundaria <- "#668596"
+cor_destaque   <- "#C98D91"
+cor_areia      <- "#DCCDC0"
+cor_texto      <- "#34383D"
+cor_cinza      <- "#929292"
+
+tema_relatorio <- theme_minimal() +
+  theme(
+    plot.title = element_text(
+      size = 15,
+      face = "bold",
+      color = cor_texto,
+      margin = margin(b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = 9,
+      color = cor_cinza,
+      margin = margin(b = 18)
+    ),
+    axis.title = element_text(
+      size = 9,
+      color = cor_texto
+    ),
+    axis.text = element_text(
+      size = 9,
+      color = cor_texto
+    ),
+    panel.grid.major.x = element_line(
+      color = "#EAEAEA",
+      linewidth = 0.4
+    ),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "none",
+    plot.background = element_rect(
+      fill = "white",
+      color = NA
+    ),
+    panel.background = element_rect(
+      fill = "white",
+      color = NA
+    ),
+    plot.margin = margin(18, 25, 18, 18)
+  )
+
+tema_barras_verticais <- tema_relatorio +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "#EAEAEA", linewidth = 0.4)
+  )
 
 # Importando  o Dataset
 dados_participantes <-  read.csv("dados/Participantes_AL.csv")
@@ -14,7 +66,7 @@ dados_resultados
 dados_participantes <- dados_participantes %>%
   rename(faixa_etaria = TP_FAIXA_ETARIA,
          sexo = TP_SEXO,
-         cor_raça = TP_COR_RACA,
+         cor_raca = TP_COR_RACA,
          conclusao_em = TP_ST_CONCLUSAO,
          tipo_ensino = TP_ENSINO,
          pai_escolaridade = Q001,
@@ -59,20 +111,32 @@ dados_participantes <- dados_participantes %>%
 
 ##Transformar variáveis numéricas em categoricas e fatores:
 dados_participantes <- dados_participantes %>%
-  mutate(faixa_etaria = case_when(
-    faixa_etaria == 1 ~ "Menor de 17 anos",
-    faixa_etaria >= 2 & faixa_etaria <= 10 ~ "Entre 17 e 25 anos",
-    faixa_etaria == 11 ~ "Entre 26 e 30 anos",
-    faixa_etaria == 12 ~ "Entre 31 e 35 anos",
-    faixa_etaria == 13 ~  "Entre 36 e 40 anos",
-    faixa_etaria == 14 ~ "Entre 41 e 45 anos",
-    faixa_etaria == 15 ~ "Entre 46 e 50 anos",
-    faixa_etaria == 16 ~ "Entre 51 e 55 anos",
-    faixa_etaria == 17 ~ "Entre 56 e 60 anos",
-    faixa_etaria == 18 ~ "Entre 61 e 65 anos",
-    faixa_etaria == 19 ~ "Entre 66 e 70 anos",
-    faixa_etaria == 20 ~  " Maior de 70 anos"
-  ))
+  mutate(
+    faixa_etaria_cod = suppressWarnings(as.integer(trimws(as.character(faixa_etaria)))),
+    faixa_etaria = case_when(
+      faixa_etaria_cod == 1  ~ "Menor de 17 anos",
+      faixa_etaria_cod == 2  ~ "17 anos",
+      faixa_etaria_cod == 3  ~ "18 anos",
+      faixa_etaria_cod == 4  ~ "19 anos",
+      faixa_etaria_cod == 5  ~ "20 anos",
+      faixa_etaria_cod == 6  ~ "21 anos",
+      faixa_etaria_cod == 7  ~ "22 anos",
+      faixa_etaria_cod == 8  ~ "23 anos",
+      faixa_etaria_cod == 9  ~ "24 anos",
+      faixa_etaria_cod == 10 ~ "25 anos",
+      faixa_etaria_cod == 11 ~ "Entre 26 e 30 anos",
+      faixa_etaria_cod == 12 ~ "Entre 31 e 35 anos",
+      faixa_etaria_cod == 13 ~ "Entre 36 e 40 anos",
+      faixa_etaria_cod == 14 ~ "Entre 41 e 45 anos",
+      faixa_etaria_cod == 15 ~ "Entre 46 e 50 anos",
+      faixa_etaria_cod == 16 ~ "Entre 51 e 55 anos",
+      faixa_etaria_cod == 17 ~ "Entre 56 e 60 anos",
+      faixa_etaria_cod == 18 ~ "Entre 61 e 65 anos",
+      faixa_etaria_cod == 19 ~ "Entre 66 e 70 anos",
+      faixa_etaria_cod == 20 ~ "Maior de 70 anos",
+      TRUE ~ NA_character_
+    )
+  )
 
 dados_participantes <- dados_participantes %>%
   mutate(treineiros = case_when(
@@ -81,14 +145,14 @@ dados_participantes <- dados_participantes %>%
   ))
 
 dados_participantes <- dados_participantes %>%
-  mutate(cor_raça = case_when(
-    cor_raça == 0 ~ "Não declarado",
-    cor_raça == 1 ~ "Branca",
-    cor_raça == 2 ~ "Preta",
-    cor_raça == 3 ~ "Parda",
-    cor_raça ==4 ~  "Amarela",
-    cor_raça == 5 ~ "Indígena",
-    cor_raça == 6 ~  " Não dispõe da informação"
+  mutate(cor_raca = case_when(
+    cor_raca == 0 ~ "Não declarado",
+    cor_raca == 1 ~ "Branca",
+    cor_raca == 2 ~ "Preta",
+    cor_raca == 3 ~ "Parda",
+    cor_raca ==4 ~  "Amarela",
+    cor_raca == 5 ~ "Indígena",
+    cor_raca == 6 ~  " Não dispõe da informação"
   ))
 
 dados_participantes <- dados_participantes %>%
@@ -173,3 +237,159 @@ dados_resultados %>% drop_na(dependencia_adminstrativa) %>% count(dependencia_ad
 #Verificando
 colSums(is.na(dados_resultados))
 colSums(is.na(dados_participantes))
+
+dados_participantes %>%
+  count(faixa_etaria, name = "n") %>%
+  mutate(
+    pct = round(100 * n / sum(n), 2),
+    pct_acumulado = round(cumsum(pct), 2)
+  )
+
+
+
+
+# Faixa etária
+
+niveis_y <- c(
+  "Menor de 17 anos", "17 anos", "18 anos", "19 anos", "20 anos",
+  "21 anos", "22 anos", "23 anos", "24 anos", "25 anos",
+  "Entre 26 e 30 anos", "Entre 31 e 35 anos", "Entre 36 e 40 anos",
+  "Entre 41 e 45 anos", "Entre 46 e 50 anos", "Entre 51 e 55 anos",
+  "Entre 56 e 60 anos", "Entre 61 e 65 anos", "Entre 66 e 70 anos",
+  "Maior de 70 anos"
+)
+
+grafico_faixa_etaria <- dados_participantes %>%
+  filter(!is.na(faixa_etaria)) %>%
+  mutate(faixa_etaria = factor(faixa_etaria, levels = niveis_y)) %>%
+  count(faixa_etaria, .drop = FALSE, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = faixa_etaria)) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = ifelse(
+      n > 0,
+      sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct),
+      ""
+    )),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(
+    limits = c(0, 26000), # leve folga para o rótulo de 21.628 (24.3%) não encostar na borda
+    breaks = seq(0, 25000, by = 5000),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  scale_y_discrete(drop = FALSE) +
+  labs(
+    title = "Distribuição por faixa etária",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+grafico_faixa_etaria
+
+# Sexo
+grafico_sexo <- dados_participantes %>%
+  count(sexo, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = sexo, y = n, fill = sexo)) +
+  geom_col(width = 0.5, show.legend = FALSE) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    vjust = -0.5,
+    size = 3.5,
+    color = cor_texto
+  ) +
+  scale_x_discrete(labels = c("F" = "Feminino (F)", "M" = "Masculino (M)")) +
+  scale_fill_manual(values = c("F" = cor_principal, "M" = cor_secundaria)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Distribuição de inscritos do ENEM 2024 em Alagoas por sexo",
+    x = NULL,
+    y = "Número de inscritos"
+  ) +
+  tema_relatorio
+
+
+# Raça
+grafico_raca <- dados_participantes %>%
+  filter(!is.na(cor_raca)) %>%
+  count(cor_raca, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = reorder(cor_raca, n))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.22))) +
+  labs(
+    title = "Distribuição por cor/raça",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+# Treineiros
+dados_participantes <- dados_participantes %>%
+  mutate(
+    treineiros = case_when(
+      treineiro == 0 ~ "Não treineiro",
+      treineiro == 1 ~ "Treineiro",
+      TRUE ~ NA_character_
+    )
+  )
+
+grafico_treineiro <- dados_participantes %>%
+  filter(!is.na(treineiros)) %>%
+  count(treineiros, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = treineiros, y = n, fill = treineiros)) +
+  geom_col(width = 0.5, show.legend = FALSE) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    vjust = -0.5,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_fill_manual(values = c(
+    "Não treineiro" = cor_secundaria,
+    "Treineiro" = cor_destaque
+  )) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Distribuição por condição de treineiro",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = NULL,
+    y = "Número de inscritos"
+  ) +
+  tema_barras_verticais
+
+# Conclusão do Ensino Médio
+grafico_conclusao <- dados_participantes %>%
+  filter(!is.na(conclusao_em)) %>%
+  count(conclusao_em, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = reorder(conclusao_em, n))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title = "Situação de conclusão do Ensino Médio",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
