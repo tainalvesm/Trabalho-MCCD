@@ -8,7 +8,12 @@ output:
     theme: readable
 ---
 
-#  Apresentação do projeto
+# Introdução
+
+```{r include=FALSE}
+source("tratamento dos dados.R")
+knitr::opts_chunk$set(echo=FALSE)
+```
 
 O Exame Nacional do Ensino Médio (ENEM) reúne informações importantes sobre o perfil dos participantes e a realidade educacional brasileira. Neste projeto, desenvolvido na disciplina de Métodos Computacionais para Ciências de Dados, serão explorados os microdados do ENEM referentes ao estado de Alagoas, contemplando características demográficas, socioeconômicas e escolares dos participantes, além de informações sobre as provas e seus respectivos desempenhos.
 
@@ -42,11 +47,27 @@ Analisar os microdados do ENEM no estado de Alagoas, investigando possíveis ass
 
 #### Faixa etária
 
+```{r}
+grafico_faixa_etaria
+```
+
 #### Gênero
+
+```{r}
+grafico_sexo
+```
 
 #### Cor/raça
 
+```{r}
+grafico_raca
+```
+
 #### Treineiro
+
+```{r}
+grafico_treineiro
+```
 
 #### Estado civil
 
@@ -55,6 +76,10 @@ Analisar os microdados do ENEM no estado de Alagoas, investigando possíveis ass
 #### Tipo de instituição que concluiu/concluirá o Ensino Médio
 
 #### Situação de conclusão do Ensino Médio
+
+```{r}
+grafico_conclusao
+```
 
 #### Ano de Conclusão do Ensino Médio
 
