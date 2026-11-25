@@ -1,9 +1,9 @@
-
 library(shiny)
 library(dplyr)
 library(ggplot2)
 library(sf)
 library(leaflet)
+library(plotly)
 
 source("R/dados.R")
 source("R/mod_inicio.R")
@@ -204,7 +204,9 @@ server <- function(input, output, session) {
   inicioServer(
     "inicio",
     participantes = participantes_filtrados,
+    participantes_todos = reactive(bases$participantes),
     resultados = resultados_filtrados,
+    malha = reactive(carregar_malha()),
     municipio = reactive(input$municipio_global)
   )
   
