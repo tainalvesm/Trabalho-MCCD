@@ -14,23 +14,21 @@ desempenhoUI <- function(id) {
     
     uiOutput(ns("medias")),
     
-    fluidRow(
-      column(
-        12,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("desempenho_escola"), height = "380px")
-        )
+    tabsetPanel(
+      type = "pills",
+      tabPanel(
+      "Por rede de ensino",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("desempenho_escola"), height = "420px")))
       )
-    ),
-    
-    fluidRow(
-      column(
-        12,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("presenca"), height = "350px")
-        )
+      ),
+      tabPanel(
+      "Presença",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("presenca"), height = "400px")))
+      )
       )
     )
   )
@@ -95,7 +93,7 @@ desempenhoServer <- function(id, resultados) {
             class = "metric-card",
             span(nomes_notas[[notas[i]]]),
             strong(formatar(medias[i])),
-            small("Nota média")
+            tags$small("Nota média")
           )
         })
       )
@@ -123,6 +121,7 @@ desempenhoServer <- function(id, resultados) {
       )
       
       tabela <- dados %>%
+        filter(!is.na(dependencia_adminstrativa)) %>%
         group_by(dependencia_adminstrativa) %>%
         summarise(
           CN = mean(NU_NOTA_CN, na.rm = TRUE),

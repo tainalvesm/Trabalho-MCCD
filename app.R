@@ -2,6 +2,8 @@
 library(shiny)
 library(dplyr)
 library(ggplot2)
+library(sf)
+library(leaflet)
 
 source("R/dados.R")
 source("R/mod_inicio.R")

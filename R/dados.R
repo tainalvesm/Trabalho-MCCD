@@ -45,6 +45,45 @@ tema_relatorio <- theme_minimal() +
     plot.margin = margin(15, 20, 15, 15)
   )
 
+corrigir_acentos <- function(x) {
+  ifelse(validUTF8(x), x, iconv(x, from = "latin1", to = "UTF-8"))
+}
+
+# Rótulos conforme o dicionário dos microdados do ENEM 2024
+rotular <- function(x, rotulos) {
+  factor(unname(rotulos[as.character(x)]), levels = unique(unname(rotulos)))
+}
+
+rot_escolaridade <- c(
+  A = "Nunca estudou", B = "Fundamental I incompleto",
+  C = "Fundamental I completo", D = "Fundamental completo",
+  E = "Médio completo", F = "Superior completo",
+  G = "Pós-graduação", H = "Não sabe"
+)
+
+rot_ocupacao <- c(
+  A = "G1: campo, pesca, extrativismo", B = "G2: domésticos, comércio, apoio",
+  C = "G3: indústria, obras, transporte", D = "G4: professor, técnico, autônomo",
+  E = "G5: nível superior, direção", F = "Não sabe"
+)
+
+rot_renda <- c(
+  A = "Nenhuma renda", B = "Até 1 SM",
+  C = "1 a 1,5 SM", D = "1,5 a 2 SM",
+  E = "2 a 3 SM", F = "2 a 3 SM",
+  G = "3 a 5 SM", H = "3 a 5 SM",
+  I = "5 a 10 SM", J = "5 a 10 SM", K = "5 a 10 SM",
+  L = "5 a 10 SM", M = "5 a 10 SM",
+  N = "Acima de 10 SM", O = "Acima de 10 SM",
+  P = "Acima de 10 SM", Q = "Acima de 10 SM"
+)
+
+rot_sim_nao <- c(A = "Não", B = "Sim")
+rot_quantidade <- c(A = "Nenhum", B = "Um", C = "Dois", D = "Três ou mais")
+rot_computador <- c(A = "Nenhum", B = "Um", C = "Dois", D = "Três", E = "Quatro ou mais")
+# O dicionário lista "Três ou mais" (D) e "Quatro ou mais" (E); D é tratado como "Três"
+rot_celular <- rot_computador
+
 carregar_dados <- function() {
   
   participantes <- read.csv(
@@ -101,11 +140,7 @@ carregar_dados <- function() {
   
   participantes <- participantes %>%
     mutate(
-      municipio_prova = iconv(
-        municipio_prova,
-        from = "",
-        to = "UTF-8"
-      ),
+      municipio_prova = corrigir_acentos(municipio_prova),
       faixa_etaria = case_when(
         faixa_etaria_cod == 1 ~ "Menor de 17 anos",
         faixa_etaria_cod == 2 ~ "17 anos",
@@ -156,33 +191,25 @@ carregar_dados <- function() {
         tipo_ensino_cod == 2 ~ "Educação Especial - Modalidade Substitutiva",
         TRUE ~ NA_character_
       ),
-      ocupacao_pai = case_when(
-        ocupacao_pai == "A" ~ "Grupo 1",
-        ocupacao_pai == "B" ~ "Grupo 2",
-        ocupacao_pai == "C" ~ "Grupo 3",
-        ocupacao_pai == "D" ~ "Grupo 4",
-        ocupacao_pai == "E" ~ "Grupo 5",
-        ocupacao_pai == "F" ~ "Não sabe",
-        TRUE ~ NA_character_
+      pai_escolaridade = rotular(pai_escolaridade, rot_escolaridade),
+      mae_escolaridade = rotular(mae_escolaridade, rot_escolaridade),
+      ocupacao_pai = rotular(ocupacao_pai, rot_ocupacao),
+      ocupacao_mae = rotular(ocupacao_mae, rot_ocupacao),
+      renda_familiar_mensal = rotular(renda_familiar_mensal, rot_renda),
+      qnt_moradores_casa = factor(
+        ifelse(qnt_moradores_casa >= 7, "7 ou mais", as.character(qnt_moradores_casa)),
+        levels = c(as.character(1:6), "7 ou mais")
       ),
-      ocupacao_mae = case_when(
-        ocupacao_mae == "A" ~ "Grupo 1",
-        ocupacao_mae == "B" ~ "Grupo 2",
-        ocupacao_mae == "C" ~ "Grupo 3",
-        ocupacao_mae == "D" ~ "Grupo 4",
-        ocupacao_mae == "E" ~ "Grupo 5",
-        ocupacao_mae == "F" ~ "Não sabe",
-        TRUE ~ NA_character_
-      )
+      casa_internet_wifi = rotular(casa_internet_wifi, rot_sim_nao),
+      casa_comp_notebook = rotular(casa_comp_notebook, rot_computador),
+      tem_telefone_celular = rotular(tem_telefone_celular, rot_celular),
+      tem_carro = rotular(tem_carro, rot_quantidade),
+      tem_motocicleta = rotular(tem_motocicleta, rot_quantidade)
     )
   
   resultados <- resultados %>%
     mutate(
-      municipio_prova = iconv(
-        municipio_prova,
-        from = "",
-        to = "UTF-8"
-      ),
+      municipio_prova = corrigir_acentos(municipio_prova),
       dependencia_adminstrativa = case_when(
         dependencia_adminstrativa == 1 ~ "Federal",
         dependencia_adminstrativa == 2 ~ "Estadual",
@@ -240,17 +267,24 @@ grafico_contagem <- function(
     mutate(
       percentual = 100 * n / sum(n),
       rotulo = paste0(
-        format(n, big.mark = ".", decimal.mark = ","),
+        format(n, big.mark = ".", decimal.mark = ",", trim = TRUE),
         " (",
         round(percentual, 1),
         "%)"
       )
     )
   
+  # Fatores mantêm a ordem natural; os demais são ordenados pela contagem
   if (horizontal) {
+    tabela$categoria <- if (is.factor(tabela$categoria)) {
+      factor(tabela$categoria, levels = rev(levels(tabela$categoria)))
+    } else {
+      reorder(tabela$categoria, tabela$n)
+    }
+    
     ggplot(
       tabela,
-      aes(x = n, y = reorder(categoria, n))
+      aes(x = n, y = categoria)
     ) +
       geom_col(fill = cor, width = 0.7) +
       geom_text(
@@ -302,3 +336,27 @@ grafico_contagem <- function(
 }
 
 
+# Compara duas ou mais variáveis com as mesmas categorias, em percentual
+grafico_comparativo <- function(dados, variaveis, titulo) {
+  
+  tabela <- bind_rows(lapply(names(variaveis), function(grupo) {
+    dados %>%
+      filter(!is.na(.data[[variaveis[[grupo]]]])) %>%
+      count(categoria = .data[[variaveis[[grupo]]]], name = "n") %>%
+      mutate(percentual = n / sum(n), grupo = grupo)
+  }))
+  
+  validate(need(nrow(tabela) > 0, "Sem dados para este filtro."))
+  
+  ordem <- levels(dados[[variaveis[[1]]]])
+  cores <- setNames(c(cor_principal, cor_secundaria)[seq_along(variaveis)], names(variaveis))
+  
+  ggplot(tabela, aes(x = percentual, y = categoria, fill = grupo)) +
+    geom_col(position = position_dodge2(reverse = TRUE, preserve = "single")) +
+    scale_y_discrete(limits = rev(ordem)) +
+    scale_x_continuous(labels = scales::percent) +
+    scale_fill_manual(values = cores) +
+    labs(title = titulo, x = "Percentual de participantes", y = NULL, fill = NULL) +
+    tema_relatorio +
+    theme(legend.position = "bottom")
+}

@@ -12,97 +12,53 @@ economicoUI <- function(id) {
       p("Características familiares, condições domiciliares e acesso à tecnologia.")
     ),
     
-    h2(class = "section-title", "Escolaridade e ocupação dos responsáveis"),
-    
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("escolaridade_pai"), height = "320px")
-        )
+    tabsetPanel(
+      type = "pills",
+      tabPanel(
+      "Responsáveis",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("escolaridade"), height = "380px")))
       ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("escolaridade_mae"), height = "320px")
-        )
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("ocupacao"), height = "360px")))
       )
-    ),
-    
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("ocupacao_pai"), height = "320px")
-        )
       ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("ocupacao_mae"), height = "320px")
-        )
+      tabPanel(
+      "Domicílio e renda",
+      fluidRow(
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("moradores"), height = "330px"))),
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("renda"), height = "330px")))
       )
-    ),
-    
-    h2(class = "section-title", "Composição familiar"),
-    
-    fluidRow(
-      column(
-        12,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("moradores"), height = "320px")
-        )
-      )
-    ),
-    
-    h2(class = "section-title", "Bens e acesso à tecnologia"),
-    
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("internet"), height = "300px")
-        )
       ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("computador"), height = "300px")
-        )
-      )
-    ),
-    
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("celular"), height = "300px")
-        )
+      tabPanel(
+      "Tecnologia",
+      fluidRow(
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("internet"), height = "330px"))),
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("computador"), height = "330px")))
       ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("bens"), height = "300px")
-        )
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("celular"), height = "330px")))
+      )
+      ),
+      tabPanel(
+      "Transporte",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("bens"), height = "360px")))
+      )
       )
     ),
     
     div(
       class = "data-note",
-      "As alternativas do questionário são apresentadas conforme os códigos presentes na base. A interpretação textual depende da conferência do dicionário oficial do ENEM."
+      "Rótulos conforme o dicionário dos microdados do ENEM 2024. SM = salário mínimo de R$ 1.412,00. As faixas de renda foram agrupadas."
     )
   )
 }
@@ -112,153 +68,63 @@ economicoServer <- function(id, participantes) {
   
   moduleServer(id, function(input, output, session) {
     
-    output$escolaridade_pai <- renderPlot({
-      
-      grafico_contagem(
+    output$escolaridade <- renderPlot({
+      grafico_comparativo(
         participantes(),
-        "pai_escolaridade",
-        "Escolaridade do pai ou responsável",
-        "Categorias registradas no questionário",
-        cor_principal
+        c("Pai" = "pai_escolaridade", "Mãe" = "mae_escolaridade"),
+        "Escolaridade dos responsáveis"
       )
     })
     
-    
-    output$escolaridade_mae <- renderPlot({
-      
-      grafico_contagem(
+    output$ocupacao <- renderPlot({
+      grafico_comparativo(
         participantes(),
-        "mae_escolaridade",
-        "Escolaridade da mãe ou responsável",
-        "Categorias registradas no questionário",
-        cor_secundaria
+        c("Pai" = "ocupacao_pai", "Mãe" = "ocupacao_mae"),
+        "Grupo ocupacional dos responsáveis"
       )
     })
-    
-    
-    output$ocupacao_pai <- renderPlot({
-      
-      grafico_contagem(
-        participantes(),
-        "ocupacao_pai",
-        "Ocupação do pai ou responsável",
-        "Grupos ocupacionais do questionário",
-        cor_destaque
-      )
-    })
-    
-    
-    output$ocupacao_mae <- renderPlot({
-      
-      grafico_contagem(
-        participantes(),
-        "ocupacao_mae",
-        "Ocupação da mãe ou responsável",
-        "Grupos ocupacionais do questionário",
-        cor_secundaria
-      )
-    })
-    
     
     output$moradores <- renderPlot({
-      
       grafico_contagem(
-        participantes(),
-        "qnt_moradores_casa",
-        "Pessoas que moram na residência",
-        "Quantidade de moradores informada",
-        cor_principal
+        participantes(), "qnt_moradores_casa",
+        "Pessoas na residência", "Incluindo o participante", cor_principal
       )
     })
     
+    output$renda <- renderPlot({
+      grafico_contagem(
+        participantes(), "renda_familiar_mensal",
+        "Renda familiar mensal", "Em salários mínimos", cor_secundaria
+      )
+    })
     
     output$internet <- renderPlot({
-      
       grafico_contagem(
-        participantes(),
-        "casa_internet_wifi",
-        "Acesso à internet ou Wi-Fi",
-        "Respostas registradas no questionário",
-        cor_secundaria
+        participantes(), "casa_internet_wifi",
+        "Internet Wi-Fi em casa", "Respostas do questionário", cor_secundaria
       )
     })
-    
     
     output$computador <- renderPlot({
-      
       grafico_contagem(
-        participantes(),
-        "casa_comp_notebook",
-        "Computador ou notebook na residência",
-        "Respostas registradas no questionário",
-        cor_destaque
+        participantes(), "casa_comp_notebook",
+        "Computadores em casa", "Quantidade informada", cor_destaque
       )
     })
-    
     
     output$celular <- renderPlot({
-      
       grafico_contagem(
-        participantes(),
-        "tem_telefone_celular",
-        "Telefone celular na residência",
-        "Respostas registradas no questionário",
-        cor_principal
+        participantes(), "tem_telefone_celular",
+        "Celulares entre os moradores", "Quantidade informada", cor_principal
       )
     })
     
-    
     output$bens <- renderPlot({
-      
-      dados <- participantes()
-      
-      dados_bens <- bind_rows(
-        lapply(
-          c("tem_carro", "tem_motocicleta"),
-          function(coluna) {
-            dados %>%
-              count(
-                resposta = .data[[coluna]],
-                name = "n"
-              ) %>%
-              mutate(
-                bem = recode(
-                  coluna,
-                  tem_carro = "Carro",
-                  tem_motocicleta = "Motocicleta"
-                )
-              )
-          }
-        )
+      grafico_comparativo(
+        participantes(),
+        c("Carro" = "tem_carro", "Motocicleta" = "tem_motocicleta"),
+        "Carro e motocicleta entre os moradores"
       )
-      
-      ggplot(
-        dados_bens,
-        aes(
-          x = resposta,
-          y = n,
-          fill = bem
-        )
-      ) +
-        geom_col(position = "dodge") +
-        scale_fill_manual(
-          values = c(
-            "Carro" = cor_principal,
-            "Motocicleta" = cor_secundaria
-          )
-        ) +
-        labs(
-          title = "Carro e motocicleta na residência",
-          subtitle = "Distribuição das respostas do questionário",
-          x = "Código da resposta",
-          y = "Número de participantes",
-          fill = "Bem"
-        ) +
-        tema_relatorio +
-        theme(
-          legend.position = "bottom"
-        )
     })
   })
 }
-

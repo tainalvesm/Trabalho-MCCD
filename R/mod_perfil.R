@@ -12,49 +12,34 @@ perfilUI <- function(id) {
       p("Quem são os inscritos no ENEM 2024 em Alagoas?")
     ),
     
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("sexo"), height = "300px")
-        )
-      ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("treineiros"), height = "300px")
-        )
+    tabsetPanel(
+      type = "pills",
+      tabPanel(
+      "Sexo e raça/cor",
+      fluidRow(
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("sexo"), height = "360px"))),
+        column(6, div(class = "content-card chart-card",
+          plotOutput(ns("raca"), height = "360px")))
       )
-    ),
-    
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("raca"), height = "360px")
-        )
       ),
-      
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("faixa_etaria"), height = "360px")
-        )
+      tabPanel(
+      "Faixa etária",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("faixa_etaria"), height = "520px")))
       )
-    ),
-    
-    fluidRow(
-      column(
-        12,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("conclusao"), height = "340px")
-        )
+      ),
+      tabPanel(
+      "Escolaridade",
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("conclusao"), height = "340px")))
+      ),
+      fluidRow(
+        column(12, div(class = "content-card chart-card",
+          plotOutput(ns("treineiros"), height = "320px")))
+      )
       )
     )
   )

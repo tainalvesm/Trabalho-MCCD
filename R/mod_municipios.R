@@ -1,4 +1,22 @@
 
+# Malha dos municípios de Alagoas (baixada uma vez e salva em dados/)
+carregar_malha <- function(arquivo = "dados/malha_al.rds") {
+  
+  if (file.exists(arquivo)) {
+    return(readRDS(arquivo))
+  }
+  
+  tryCatch({
+    malha <- geobr::read_municipality(
+      code_muni = "AL", year = 2022, showProgress = FALSE
+    )
+    malha <- sf::st_transform(malha, 4326)
+    malha$code_muni <- as.integer(malha$code_muni)
+    saveRDS(malha, arquivo)
+    malha
+  }, error = function(e) NULL)
+}
+
 municipiosUI <- function(id) {
   
   ns <- NS(id)
@@ -32,16 +50,32 @@ municipiosUI <- function(id) {
     
     div(
       class = "content-card",
-      h3("Indicadores por município"),
-      tableOutput(ns("tabela_municipios"))
+      h3("Mapa interativo de Alagoas"),
+      selectInput(
+        ns("indicador"),
+        "O que mostrar no mapa",
+        choices = c(
+          "Inscritos (município da prova)" = "inscritos",
+          "Média geral" = "media_geral",
+          "Média de redação" = "NU_NOTA_REDACAO",
+          "Média de matemática" = "NU_NOTA_MT",
+          "Média de linguagens" = "NU_NOTA_LC",
+          "Média de ciências humanas" = "NU_NOTA_CH",
+          "Média de ciências da natureza" = "NU_NOTA_CN"
+        ),
+        width = "320px"
+      ),
+      leaflet::leafletOutput(ns("mapa"), height = "480px"),
+      div(
+        class = "data-note",
+        "Inscritos: município onde a prova foi aplicada. Notas: município da escola, apenas participantes com escola informada; municípios com menos de 10 notas aparecem sem dados."
+      )
     ),
     
     div(
-      class = "content-card map-placeholder",
-      icon("map-marked-alt", class = "map-icon"),
-      h3("Mapa interativo de Alagoas"),
-      p("Área reservada para a visualização geográfica dos indicadores municipais."),
-      span("A integração depende da malha geográfica dos municípios.")
+      class = "content-card",
+      h3("Indicadores por município de aplicação da prova"),
+      div(class = "tabela-rolagem", tableOutput(ns("tabela_municipios")))
     )
   )
 }
@@ -90,6 +124,123 @@ municipiosServer <- function(
         )
       
       resultado
+    })
+    
+    
+    malha <- reactive({
+      m <- carregar_malha()
+      validate(need(!is.null(m), "Não foi possível baixar o mapa. Verifique a internet."))
+      m
+    })
+    
+    
+    valores_mapa <- reactive({
+      
+      if (input$indicador == "inscritos") {
+        return(
+          participantes() %>%
+            count(code_muni = as.integer(CO_MUNICIPIO_PROVA), name = "valor") %>%
+            mutate(n = valor)
+        )
+      }
+      
+      r <- resultados()
+      
+      validate(need(
+        "CO_MUNICIPIO_ESC" %in% names(r),
+        "A base de resultados não tem a coluna CO_MUNICIPIO_ESC."
+      ))
+      
+      r$nota <- if (input$indicador == "media_geral") {
+        rowMeans(r[, c("NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC",
+                       "NU_NOTA_MT", "NU_NOTA_REDACAO")])
+      } else {
+        r[[input$indicador]]
+      }
+      
+      r %>%
+        filter(!is.na(CO_MUNICIPIO_ESC), !is.na(nota)) %>%
+        group_by(code_muni = as.integer(CO_MUNICIPIO_ESC)) %>%
+        summarise(valor = mean(nota), n = n(), .groups = "drop") %>%
+        filter(n >= 10)
+    })
+    
+    
+    output$mapa <- leaflet::renderLeaflet({
+      
+      mapa <- malha() %>%
+        left_join(valores_mapa(), by = "code_muni")
+      
+      validate(need(any(!is.na(mapa$valor)), "Sem dados para este indicador."))
+      
+      contagem <- input$indicador == "inscritos"
+      
+      paleta <- leaflet::colorNumeric(
+        c("#F3E9E1", cor_destaque, cor_principal, "#5E2A31"),
+        domain = if (contagem) log10(mapa$valor) else mapa$valor,
+        na.color = "#E4E4E4"
+      )
+      
+      cor <- paleta(if (contagem) log10(mapa$valor) else mapa$valor)
+      
+      texto <- ifelse(
+        is.na(mapa$valor),
+        "Sem dados",
+        if (contagem) {
+          paste(format(mapa$valor, big.mark = ".", decimal.mark = ",", trim = TRUE), "inscritos")
+        } else {
+          paste0(
+            "Média: ", format(round(mapa$valor, 1), decimal.mark = ",", nsmall = 1, trim = TRUE),
+            " (", mapa$n, " notas)"
+          )
+        }
+      )
+      
+      rotulos <- lapply(
+        paste0("<strong>", htmltools::htmlEscape(mapa$name_muni), "</strong><br>", texto),
+        htmltools::HTML
+      )
+      
+      desenho <- leaflet::leaflet(mapa) %>%
+        leaflet::addPolygons(
+          fillColor = cor,
+          fillOpacity = 0.85,
+          color = "white",
+          weight = 1,
+          label = rotulos,
+          highlightOptions = leaflet::highlightOptions(
+            weight = 3, color = cor_texto, bringToFront = TRUE
+          )
+        )
+      
+      # Destaca e aproxima o município escolhido na busca lateral
+      codigo <- participantes() %>%
+        filter(municipio_prova == municipio()) %>%
+        pull(CO_MUNICIPIO_PROVA) %>%
+        head(1)
+      
+      if (length(codigo) == 1) {
+        escolhido <- mapa[mapa$code_muni == codigo, ]
+        limites <- unname(sf::st_bbox(escolhido))
+        
+        desenho <- desenho %>%
+          leaflet::addPolylines(data = escolhido, color = cor_secundaria, weight = 4, opacity = 1) %>%
+          leaflet::setView(
+            lng = mean(limites[c(1, 3)]),
+            lat = mean(limites[c(2, 4)]),
+            zoom = 10
+          )
+      }
+      
+      if (!contagem) {
+        desenho <- desenho %>%
+          leaflet::addLegend(
+            "bottomright", pal = paleta, values = mapa$valor,
+            title = "Nota média", na.label = "Sem dados", opacity = 0.9
+          )
+      }
+      
+      desenho
     })
     
     
@@ -174,7 +325,8 @@ municipiosServer <- function(
           `Média redação`,
           `Média matemática`
         )
-    }, striped = TRUE, bordered = FALSE, hover = TRUE)
+    }, striped = TRUE, bordered = FALSE, hover = TRUE,
+    width = "100%", align = "lrrr", digits = 1)
   })
 }
 
