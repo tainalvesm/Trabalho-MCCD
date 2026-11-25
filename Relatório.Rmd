@@ -71,7 +71,35 @@ grafico_treineiro
 
 #### Estado civil
 
+::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
+::: {style="flex: 1; min-width: 0;"}
+```{r out.width="100%"}
+grafico_estado_civil
+```
+:::
+
+::: {style="flex: 0 0 42%; font-size: 0.9em;"}
+```{r}
+knitr::kable(tabela_estado_civil)
+```
+:::
+:::::
+
 #### Nacionalidade
+
+::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
+::: {style="flex: 1; min-width: 0;"}
+```{r out.width="100%"}
+grafico_nacionalidade
+```
+:::
+
+::: {style="flex: 0 0 42%; font-size: 0.9em;"}
+```{r}
+knitr::kable(tabela_nacionalidade)
+```
+:::
+:::::
 
 #### Tipo de instituição que concluiu/concluirá o Ensino Médio
 
@@ -87,21 +115,83 @@ grafico_conclusao
 
 #### Renda mensal
 
-(obs de se o participante tem renda própria)
+```{r}
+grafico_renda
+```
+
+```{r}
+knitr::kable(tabela_renda)
+```
 
 #### Tipo de escola do Ensino Médio
 
+::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
+::: {style="flex: 1; min-width: 0;"}
+```{r out.width="100%"}
+grafico_escola_geral
+```
+:::
+
+::: {style="flex: 0 0 42%; font-size: 0.9em;"}
+```{r}
+knitr::kable(tabela_escola_geral)
+```
+:::
+:::::
+
 #### Análise familiar
 
-- Escolaridade do pai/homem responsável
+**Escolaridade dos responsáveis**
 
-- Escolaridade da mãe/mulher responsável
+```{r}
+grafico_escolaridade_responsaveis
+```
 
-- Ocupação do pai/homem responsável
+**Ocupação dos responsáveis**
 
-- Ocupação da mãe/mulher responsável
+::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
+::: {style="flex: 1; min-width: 0;"}
+```{r out.width="100%"}
+grafico_pai_ocup
+```
+:::
 
-- Quantas pessoas moram na casa (?)
+::: {style="flex: 0 0 42%; font-size: 0.9em;"}
+```{r}
+knitr::kable(tabela_pai_ocup)
+```
+:::
+:::::
+
+::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
+::: {style="flex: 1; min-width: 0;"}
+```{r out.width="100%"}
+grafico_mae_ocup
+```
+:::
+
+::: {style="flex: 0 0 42%; font-size: 0.9em;"}
+```{r}
+knitr::kable(tabela_mae_ocup)
+```
+:::
+:::::
+
+**Renda familiar e composição domiciliar**
+
+```{r}
+grafico_renda_moradores
+```
+
+**Associações com escolaridade da mãe**
+
+```{r}
+grafico_mae_renda
+```
+
+```{r}
+grafico_mae_escola
+```
 
 #### Acesso à tecnologia
 
@@ -129,7 +219,7 @@ grafico_conclusao
 
 ## Presença
 
-## 4.2 Resultados (medias)
+## Resultados (médias)
 
 - media geral e por área
 
