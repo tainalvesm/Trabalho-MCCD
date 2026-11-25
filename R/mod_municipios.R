@@ -1,7 +1,5 @@
-
-# Malha dos municípios de Alagoas (baixada uma vez e salva em dados/)
+# Malha dos municípios de Alagoas (mantida aqui pois é usada no mod_inicio.R)
 carregar_malha <- function(arquivo = "dados/malha_al.rds") {
-  
   if (file.exists(arquivo)) {
     return(readRDS(arquivo))
   }
@@ -18,68 +16,57 @@ carregar_malha <- function(arquivo = "dados/malha_al.rds") {
 }
 
 municipiosUI <- function(id) {
-  
   ns <- NS(id)
   
   tagList(
-    
     div(
       class = "page-heading",
       span(class = "eyebrow", "DIMENSÃO TERRITORIAL"),
       h1("Análise municipal"),
-      p("Compare a participação e o desempenho dos municípios de Alagoas.")
+      p("Ranking de desempenho dos municípios de Alagoas no ENEM 2024.")
     ),
     
-    fluidRow(
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("ranking_inscritos"), height = "420px")
+    div(
+      class = "content-card",
+      
+      # Barra de filtros: seletor de área e busca digitável
+      fluidRow(
+        column(
+          6,
+          selectInput(
+            inputId = ns("area_ranking"),
+            label = "Ordenar ranking por área do conhecimento",
+            choices = c(
+              "Média geral" = "media_geral",
+              "Redação" = "NU_NOTA_REDACAO",
+              "Matemática" = "NU_NOTA_MT",
+              "Linguagens" = "NU_NOTA_LC",
+              "Ciências Humanas" = "NU_NOTA_CH",
+              "Ciências da Natureza" = "NU_NOTA_CN"
+            ),
+            selected = "media_geral",
+            width = "100%"
+          )
+        ),
+        column(
+          6,
+          textInput(
+            inputId = ns("busca_municipio"),
+            label = "Buscar município",
+            value = "",
+            placeholder = "Digite o nome do município...",
+            width = "100%"
+          )
         )
       ),
       
-      column(
-        6,
-        div(
-          class = "content-card chart-card",
-          plotOutput(ns("ranking_redacao"), height = "420px")
-        )
-      )
-    ),
-    
-    div(
-      class = "content-card",
-      h3("Mapa interativo de Alagoas"),
-      selectInput(
-        ns("indicador"),
-        "O que mostrar no mapa",
-        choices = c(
-          "Inscritos (município da prova)" = "inscritos",
-          "Média geral" = "media_geral",
-          "Média de redação" = "NU_NOTA_REDACAO",
-          "Média de matemática" = "NU_NOTA_MT",
-          "Média de linguagens" = "NU_NOTA_LC",
-          "Média de ciências humanas" = "NU_NOTA_CH",
-          "Média de ciências da natureza" = "NU_NOTA_CN"
-        ),
-        width = "320px"
-      ),
-      leaflet::leafletOutput(ns("mapa"), height = "480px"),
       div(
-        class = "data-note",
-        "Inscritos: município onde a prova foi aplicada. Notas: município da escola, apenas participantes com escola informada; municípios com menos de 10 notas aparecem sem dados."
+        style = "margin-top: 8px;",
+        uiOutput(ns("tabela_ranking_ui"))
       )
-    ),
-    
-    div(
-      class = "content-card",
-      h3("Indicadores por município de aplicação da prova"),
-      div(class = "tabela-rolagem", tableOutput(ns("tabela_municipios")))
     )
   )
 }
-
 
 municipiosServer <- function(
     id,
@@ -87,246 +74,170 @@ municipiosServer <- function(
     resultados,
     municipio
 ) {
-  
   moduleServer(id, function(input, output, session) {
     
-    resumo_municipal <- reactive({
-      
+    normalizar_texto <- function(x) {
+      x_utf8 <- enc2utf8(as.character(x))
+      sem_acento <- iconv(x_utf8, from = "UTF-8", to = "ASCII//TRANSLIT")
+      tolower(trimws(ifelse(is.na(sem_acento), x_utf8, sem_acento)))
+    }
+    
+    fmt_nota <- function(x) {
+      ifelse(
+        is.na(x) | is.nan(x) | is.infinite(x),
+        "—",
+        format(round(x, 1), decimal.mark = ",", nsmall = 1, trim = TRUE)
+      )
+    }
+    
+    fmt_int <- function(x) {
+      ifelse(
+        is.na(x),
+        "0",
+        format(as.integer(round(x)), big.mark = ".", decimal.mark = ",", trim = TRUE, scientific = FALSE)
+      )
+    }
+    
+    ranking_base <- reactive({
       p <- participantes()
       r <- resultados()
       
       inscritos <- p %>%
-        filter(!is.na(municipio_prova)) %>%
+        filter(!is.na(municipio_prova), nzchar(trimws(municipio_prova))) %>%
         count(municipio_prova, name = "inscritos")
       
       notas <- r %>%
-        filter(!is.na(municipio_prova)) %>%
+        filter(!is.na(municipio_prova), nzchar(trimws(municipio_prova))) %>%
         group_by(municipio_prova) %>%
         summarise(
-          media_redacao = mean(NU_NOTA_REDACAO, na.rm = TRUE),
-          media_matematica = mean(NU_NOTA_MT, na.rm = TRUE),
+          NU_NOTA_CN = mean(suppressWarnings(as.numeric(NU_NOTA_CN)), na.rm = TRUE),
+          NU_NOTA_CH = mean(suppressWarnings(as.numeric(NU_NOTA_CH)), na.rm = TRUE),
+          NU_NOTA_LC = mean(suppressWarnings(as.numeric(NU_NOTA_LC)), na.rm = TRUE),
+          NU_NOTA_MT = mean(suppressWarnings(as.numeric(NU_NOTA_MT)), na.rm = TRUE),
+          NU_NOTA_REDACAO = mean(suppressWarnings(as.numeric(NU_NOTA_REDACAO)), na.rm = TRUE),
           .groups = "drop"
+        ) %>%
+        mutate(
+          across(starts_with("NU_NOTA_"), ~ ifelse(is.nan(.x), NA_real_, .x)),
+          media_geral = rowMeans(
+            cbind(NU_NOTA_CN, NU_NOTA_CH, NU_NOTA_LC, NU_NOTA_MT, NU_NOTA_REDACAO),
+            na.rm = TRUE
+          ),
+          media_geral = ifelse(is.nan(media_geral), NA_real_, media_geral)
         )
       
-      resultado <- inscritos %>%
-        left_join(notas, by = "municipio_prova") %>%
-        mutate(
-          media_redacao = ifelse(
-            is.nan(media_redacao),
-            NA,
-            media_redacao
-          ),
-          media_matematica = ifelse(
-            is.nan(media_matematica),
-            NA,
-            media_matematica
+      inscritos %>%
+        left_join(notas, by = "municipio_prova")
+    })
+    
+    output$tabela_ranking_ui <- renderUI({
+      df <- ranking_base()
+      req(nrow(df) > 0)
+      
+      col_ord <- if (!is.null(input$area_ranking) && input$area_ranking %in% names(df)) {
+        input$area_ranking
+      } else {
+        "media_geral"
+      }
+      
+      # Ordena do maior para o menor conforme a área selecionada (padrão: média geral)
+      df_ord <- df %>%
+        arrange(desc(.data[[col_ord]]), desc(media_geral), desc(inscritos), municipio_prova) %>%
+        mutate(posicao = row_number())
+      
+      # Filtro por busca digitada (mantém a posição original do município no ranking)
+      termo <- if (!is.null(input$busca_municipio)) normalizar_texto(input$busca_municipio) else ""
+      if (nzchar(termo)) {
+        df_ord <- df_ord %>%
+          filter(grepl(termo, normalizar_texto(municipio_prova), fixed = TRUE))
+      }
+      
+      if (nrow(df_ord) == 0) {
+        return(
+          div(
+            style = "padding: 24px; text-align: center; color: #929292; font-size: 0.95rem;",
+            "Nenhum município encontrado para a busca informada."
           )
         )
+      }
       
-      resultado
-    })
-    
-    
-    malha <- reactive({
-      m <- carregar_malha()
-      validate(need(!is.null(m), "Não foi possível baixar o mapa. Verifique a internet."))
-      m
-    })
-    
-    
-    valores_mapa <- reactive({
-      
-      if (input$indicador == "inscritos") {
-        return(
-          participantes() %>%
-            count(code_muni = as.integer(CO_MUNICIPIO_PROVA), name = "valor") %>%
-            mutate(n = valor)
+      estilo_th <- function(col_id, alinhamento = "right") {
+        destaque <- identical(col_id, col_ord)
+        sprintf(
+          "text-align: %s; padding: 10px 12px; border-bottom: 2px solid %s; color: %s; background-color: %s; font-weight: 700; white-space: nowrap;",
+          alinhamento,
+          if (destaque) "#A6535D" else "#E5E7EB",
+          if (destaque) "#A6535D" else "#34383D",
+          if (destaque) "#FDF8F8" else "#F9FAFB"
         )
       }
       
-      r <- resultados()
-      
-      validate(need(
-        "CO_MUNICIPIO_ESC" %in% names(r),
-        "A base de resultados não tem a coluna CO_MUNICIPIO_ESC."
-      ))
-      
-      r$nota <- if (input$indicador == "media_geral") {
-        rowMeans(r[, c("NU_NOTA_CN", "NU_NOTA_CH", "NU_NOTA_LC",
-                       "NU_NOTA_MT", "NU_NOTA_REDACAO")])
-      } else {
-        r[[input$indicador]]
+      estilo_td <- function(col_id, alinhamento = "right", negrito = FALSE) {
+        destaque <- identical(col_id, col_ord)
+        sprintf(
+          "text-align: %s; padding: 9px 12px; border-bottom: 1px solid #F0F0F0; background-color: %s; color: %s; font-weight: %s;",
+          alinhamento,
+          if (destaque) "#FDF8F8" else "transparent",
+          if (destaque) "#A6535D" else "#34383D",
+          if (destaque || negrito) "700" else "400"
+        )
       }
       
-      r %>%
-        filter(!is.na(CO_MUNICIPIO_ESC), !is.na(nota)) %>%
-        group_by(code_muni = as.integer(CO_MUNICIPIO_ESC)) %>%
-        summarise(valor = mean(nota), n = n(), .groups = "drop") %>%
-        filter(n >= 10)
-    })
-    
-    
-    output$mapa <- leaflet::renderLeaflet({
-      
-      mapa <- malha() %>%
-        left_join(valores_mapa(), by = "code_muni")
-      
-      validate(need(any(!is.na(mapa$valor)), "Sem dados para este indicador."))
-      
-      contagem <- input$indicador == "inscritos"
-      
-      paleta <- leaflet::colorNumeric(
-        c("#F3E9E1", cor_destaque, cor_principal, "#5E2A31"),
-        domain = if (contagem) log10(mapa$valor) else mapa$valor,
-        na.color = "#E4E4E4"
-      )
-      
-      cor <- paleta(if (contagem) log10(mapa$valor) else mapa$valor)
-      
-      texto <- ifelse(
-        is.na(mapa$valor),
-        "Sem dados",
-        if (contagem) {
-          paste(format(mapa$valor, big.mark = ".", decimal.mark = ",", trim = TRUE), "inscritos")
+      linhas <- lapply(seq_len(nrow(df_ord)), function(i) {
+        row <- df_ord[i, ]
+        pos <- row$posicao
+        
+        badge_pos <- if (pos <= 3) {
+          cor_bg <- if (pos == 1) "#A6535D" else if (pos == 2) "#668596" else "#C98D91"
+          tags$span(
+            style = sprintf(
+              "display: inline-block; min-width: 26px; padding: 2px 7px; border-radius: 12px; background: %s; color: #FFFFFF; font-weight: 700; font-size: 0.82rem; text-align: center;",
+              cor_bg
+            ),
+            paste0(pos, "º")
+          )
         } else {
-          paste0(
-            "Média: ", format(round(mapa$valor, 1), decimal.mark = ",", nsmall = 1, trim = TRUE),
-            " (", mapa$n, " notas)"
+          tags$span(
+            style = "display: inline-block; min-width: 26px; color: #666C73; font-weight: 600; font-size: 0.88rem; text-align: center;",
+            paste0(pos, "º")
           )
         }
-      )
-      
-      rotulos <- lapply(
-        paste0("<strong>", htmltools::htmlEscape(mapa$name_muni), "</strong><br>", texto),
-        htmltools::HTML
-      )
-      
-      desenho <- leaflet::leaflet(mapa) %>%
-        leaflet::addPolygons(
-          fillColor = cor,
-          fillOpacity = 0.85,
-          color = "white",
-          weight = 1,
-          label = rotulos,
-          highlightOptions = leaflet::highlightOptions(
-            weight = 3, color = cor_texto, bringToFront = TRUE
-          )
-        )
-      
-      # Destaca e aproxima o município escolhido na busca lateral
-      codigo <- participantes() %>%
-        filter(municipio_prova == municipio()) %>%
-        pull(CO_MUNICIPIO_PROVA) %>%
-        head(1)
-      
-      if (length(codigo) == 1) {
-        escolhido <- mapa[mapa$code_muni == codigo, ]
-        limites <- unname(sf::st_bbox(escolhido))
         
-        desenho <- desenho %>%
-          leaflet::addPolylines(data = escolhido, color = cor_secundaria, weight = 4, opacity = 1) %>%
-          leaflet::setView(
-            lng = mean(limites[c(1, 3)]),
-            lat = mean(limites[c(2, 4)]),
-            zoom = 10
-          )
-      }
-      
-      if (!contagem) {
-        desenho <- desenho %>%
-          leaflet::addLegend(
-            "bottomright", pal = paleta, values = mapa$valor,
-            title = "Nota média", na.label = "Sem dados", opacity = 0.9
-          )
-      }
-      
-      desenho
-    })
-    
-    
-    output$ranking_inscritos <- renderPlot({
-      
-      dados <- resumo_municipal() %>%
-        arrange(desc(inscritos)) %>%
-        slice_head(n = 10)
-      
-      ggplot(
-        dados,
-        aes(
-          x = inscritos,
-          y = reorder(municipio_prova, inscritos)
+        tags$tr(
+          tags$td(style = "text-align: center; padding: 9px 10px; border-bottom: 1px solid #F0F0F0;", badge_pos),
+          tags$td(style = "text-align: left; padding: 9px 12px; border-bottom: 1px solid #F0F0F0; font-weight: 600; color: #22252A;", row$municipio_prova),
+          tags$td(style = "text-align: right; padding: 9px 12px; border-bottom: 1px solid #F0F0F0; color: #555;", fmt_int(row$inscritos)),
+          tags$td(style = estilo_td("media_geral", "right", negrito = TRUE), fmt_nota(row$media_geral)),
+          tags$td(style = estilo_td("NU_NOTA_REDACAO", "right"), fmt_nota(row$NU_NOTA_REDACAO)),
+          tags$td(style = estilo_td("NU_NOTA_MT", "right"), fmt_nota(row$NU_NOTA_MT)),
+          tags$td(style = estilo_td("NU_NOTA_LC", "right"), fmt_nota(row$NU_NOTA_LC)),
+          tags$td(style = estilo_td("NU_NOTA_CH", "right"), fmt_nota(row$NU_NOTA_CH)),
+          tags$td(style = estilo_td("NU_NOTA_CN", "right"), fmt_nota(row$NU_NOTA_CN))
         )
-      ) +
-        geom_col(fill = cor_secundaria, width = 0.7) +
-        geom_text(
-          aes(label = format(inscritos, big.mark = ".")),
-          hjust = -0.15,
-          size = 3,
-          color = cor_texto
-        ) +
-        scale_x_continuous(
-          expand = expansion(mult = c(0, 0.2))
-        ) +
-        labs(
-          title = "Municípios com mais inscritos",
-          subtitle = "10 maiores quantitativos",
-          x = "Número de inscritos",
-          y = NULL
-        ) +
-        tema_relatorio
-    })
-    
-    
-    output$ranking_redacao <- renderPlot({
+      })
       
-      dados <- resumo_municipal() %>%
-        filter(!is.na(media_redacao)) %>%
-        arrange(desc(media_redacao)) %>%
-        slice_head(n = 10)
-      
-      ggplot(
-        dados,
-        aes(
-          x = media_redacao,
-          y = reorder(municipio_prova, media_redacao)
+      div(
+        class = "tabela-rolagem",
+        style = "max-height: 560px; overflow-y: auto; border: 1px solid #ECECEC; border-radius: 8px;",
+        tags$table(
+          style = "width: 100%; border-collapse: collapse; font-size: 0.92rem;",
+          tags$thead(
+            style = "position: sticky; top: 0; z-index: 2;",
+            tags$tr(
+              tags$th(style = estilo_th("posicao", "center"), "#"),
+              tags$th(style = estilo_th("municipio_prova", "left"), "Município"),
+              tags$th(style = estilo_th("inscritos", "right"), "Inscritos"),
+              tags$th(style = estilo_th("media_geral", "right"), "Média geral"),
+              tags$th(style = estilo_th("NU_NOTA_REDACAO", "right"), "Redação"),
+              tags$th(style = estilo_th("NU_NOTA_MT", "right"), "Matemática"),
+              tags$th(style = estilo_th("NU_NOTA_LC", "right"), "Linguagens"),
+              tags$th(style = estilo_th("NU_NOTA_CH", "right"), "C. Humanas"),
+              tags$th(style = estilo_th("NU_NOTA_CN", "right"), "C. Natureza")
+            )
+          ),
+          tags$tbody(linhas)
         )
-      ) +
-        geom_col(fill = cor_principal, width = 0.7) +
-        geom_text(
-          aes(label = round(media_redacao, 1)),
-          hjust = -0.15,
-          size = 3,
-          color = cor_texto
-        ) +
-        scale_x_continuous(
-          expand = expansion(mult = c(0, 0.2))
-        ) +
-        labs(
-          title = "Maiores médias de redação",
-          subtitle = "10 maiores médias municipais",
-          x = "Nota média",
-          y = NULL
-        ) +
-        tema_relatorio
+      )
     })
-    
-    
-    output$tabela_municipios <- renderTable({
-      
-      resumo_municipal() %>%
-        arrange(desc(inscritos)) %>%
-        mutate(
-          `Média redação` = round(media_redacao, 1),
-          `Média matemática` = round(media_matematica, 1)
-        ) %>%
-        select(
-          Município = municipio_prova,
-          Inscritos = inscritos,
-          `Média redação`,
-          `Média matemática`
-        )
-    }, striped = TRUE, bordered = FALSE, hover = TRUE,
-    width = "100%", align = "lrrr", digits = 1)
   })
 }
-
