@@ -148,7 +148,7 @@ ui <- fluidPage(
         tabPanel(
           title = "Econômico",
           value = "economico",
-          economicoUI("economico")
+          socioeconomicoUI("economico")
         ),
         
         tabPanel(
@@ -225,7 +225,7 @@ server <- function(input, output, session) {
     resultados = resultados_filtrados
   )
   
-  economicoServer(
+  socioeconomicoServer(
     "economico",
     participantes = participantes_filtrados
   )
