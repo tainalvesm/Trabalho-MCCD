@@ -1,5 +1,11 @@
 ---
 title: "Além das notas: uma análise exploratória dos microdados do ENEM"
+author: 
+- "Geovanna Silva Lacerda"
+- "Livia Neves Rodrigues Vitor Estevam"
+- "Miranda Hagata de Medeiros Pires"
+- "Taina Alves Marques"
+date: "2026"
 output:
   html_document:
     toc: true
@@ -234,7 +240,7 @@ knitr::kable(tabela_mae_ocup)
 Grupo 1: Agropecuária / Extrativismo;\
 Grupo 2: Serviços gerais / Comércio / Doméstico;\
 Grupo 3: Indústria / Construção / Transporte;\
-Grupo 4: Técnico / Professor / Autônomo / Microemp; \
+Grupo 4: Técnico / Professor / Autônomo / Microemp;\
 Grupo 5: Nível superior / Direção / Alta patente.
 
 Quase 30% dos pais das famílias dos candidatos daquele ano trabalhavam em áreas ligadas ao setor extrativista, 20% no setor de serviços, 19% em trabalhos técnicos/indústria, 13% em setores técnicos especializados e 5% em ofícios de nível superior e altos cargos. Existe uma quantidade relevante de "não sabe", equivalente a 17%. Associando essa variável à renda por meio do V de Cramér, foi possível obter um valor equivalente a 0,322 com um df\* de 5, o que indica que existe uma forte associação entre a ocupação do pai/homem responsável com a renda da família.
@@ -341,7 +347,7 @@ grafico_presenca
 
 A condição de presença apresenta resultados semelhantes entre as quatro áreas do conhecimento. Em todas elas, a maior parte dos participantes esteve presente na prova, com percentuais entre aproximadamente 70% e 74%. Já os participantes que faltaram representam cerca de 26% a 30% dos registros. Assim, observa-se que a maioria compareceu às provas, embora a quantidade de ausências também seja significativa.
 
-## Resultados 
+## Resultados
 
 ```{r}
 grafico_resultados
