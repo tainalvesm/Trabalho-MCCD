@@ -148,16 +148,10 @@ socioeconomicoUI <- function(id) {
         div(
           style = "margin-top: 14px;",
           fluidRow(
-            column(
-              12,
-              card_grafico(
-                "Meio de transporte / deslocamento",
-                "Distribuição dos participantes por categoria",
-                "plot_transporte",
-                "expand_transporte",
-                "360px"
-              )
-            )
+            column(6, card_grafico("Carro no domicílio", "Quantidade de carros na casa",
+                                   "plot_transporte", "expand_transporte", "340px")),
+            column(6, card_grafico("Motocicleta no domicílio", "Quantidade de motocicletas na casa",
+                                   "plot_moto", "expand_moto", "340px"))
           )
         )
       )
@@ -168,6 +162,38 @@ socioeconomicoUI <- function(id) {
 socioeconomicoServer <- function(id, participantes) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    
+    # Questionário lido direto do CSV original (não depende dos nomes usados em dados.R)
+    base_q <- read.csv("dados/Participantes_AL.csv")
+    
+    esc <- c(A = "Nunca estudou", B = "Fundamental I incompleto", C = "Fundamental II incompleto",
+             D = "Médio incompleto", E = "Médio completo", F = "Superior completo",
+             G = "Pós-graduação completa", H = "Não sei")
+    ocup <- c(A = "G1: campo, pesca, extrativismo", B = "G2: domésticos, comércio, apoio",
+              C = "G3: indústria, construção, transporte", D = "G4: técnicos, professores, autônomos",
+              E = "G5: nível superior, direção", F = "Não sei")
+    renda <- c(A = "Nenhuma renda", B = "Até R$ 1.412", C = "R$ 1.412 a 2.118", D = "R$ 2.118 a 2.824",
+               E = "R$ 2.824 a 3.530", F = "R$ 3.530 a 4.236", G = "R$ 4.236 a 5.648",
+               H = "R$ 5.648 a 7.060", I = "R$ 7.060 a 8.472", J = "R$ 8.472 a 9.884",
+               K = "R$ 9.884 a 11.296", L = "R$ 11.296 a 12.708", M = "R$ 12.708 a 14.120",
+               N = "R$ 14.120 a 16.944", O = "R$ 16.944 a 21.180", P = "R$ 21.180 a 28.240",
+               Q = "Acima de R$ 28.240")
+    wifi <- c(A = "Não", B = "Sim")
+    comp <- c(A = "Não", B = "Sim, um", C = "Sim, dois", D = "Sim, três", E = "Sim, quatro ou mais")
+    carro <- c(A = "Não", B = "Sim, um", C = "Sim, dois", D = "Sim, três ou mais")
+    moto <- c(A = "Não", B = "Sim, uma", C = "Sim, duas", D = "Sim, três ou mais")
+    
+    mapas <- list(Q001 = esc, Q002 = esc, Q003 = ocup, Q004 = ocup, Q007 = renda,
+                  Q011 = carro, Q012 = moto, Q020 = wifi, Q021 = comp)
+    for (v in names(mapas)) base_q[[v]] <- unname(mapas[[v]][as.character(base_q[[v]])])
+    
+    # acompanha o filtro de município do app
+    mun_original <- as.character(base_q$NO_MUNICIPIO_PROVA)
+    mun_convertido <- iconv(mun_original, from = "latin1", to = "UTF-8")
+    dados_q <- reactive({
+      alvo <- unique(as.character(participantes()$municipio_prova))
+      base_q[mun_original %in% alvo | mun_convertido %in% alvo, ]
+    })
     
     cor_prim <- if (exists("cor_principal", envir = .GlobalEnv)) get("cor_principal", envir = .GlobalEnv) else "#A6535D"
     cor_sec  <- if (exists("cor_secundaria", envir = .GlobalEnv)) get("cor_secundaria", envir = .GlobalEnv) else "#668596"
@@ -204,7 +230,7 @@ socioeconomicoServer <- function(id, participantes) {
         plotly::config(displayModeBar = FALSE, responsive = TRUE)
     }
     
-   
+    
     grafico_barras_pct <- function(dados, candidatos_col, cor_barra, ordem_niveis = NULL) {
       col_encontrada <- intersect(candidatos_col, names(dados))[1]
       validate(need(!is.na(col_encontrada), "Variável não encontrada na base de participantes."))
@@ -313,72 +339,36 @@ socioeconomicoServer <- function(id, participantes) {
       montar_plotly(p, mostrar_legenda = TRUE)
     }
     
-    ordem_escolaridade <- c(
-      "Nunca estudou",
-      "Fundamental I incompleto",
-      "Fundamental I completo",
-      "Fundamental completo",
-      "Médio completo",
-      "Superior completo",
-      "Pós-graduação",
-      "Não sabe"
-    )
-    
     plot_esc_resp_obj <- reactive({
-      grafico_responsaveis_duplo(
-        participantes(),
-        cols_mae = c("escolaridade_mae", "esc_mae", "Q002"),
-        cols_pai = c("escolaridade_pai", "esc_pai", "Q001"),
-        ordem_niveis = ordem_escolaridade
-      )
+      grafico_responsaveis_duplo(dados_q(), "Q002", "Q001", ordem_niveis = unname(esc))
     })
     
     plot_ocup_resp_obj <- reactive({
-      grafico_responsaveis_duplo(
-        participantes(),
-        cols_mae = c("ocupacao_mae", "grupo_ocup_mae", "Q004"),
-        cols_pai = c("ocupacao_pai", "grupo_ocup_pai", "Q003")
-      )
+      grafico_responsaveis_duplo(dados_q(), "Q004", "Q003", ordem_niveis = unname(ocup))
     })
     
     plot_renda_obj <- reactive({
-      grafico_barras_pct(
-        participantes(),
-        candidatos_col = c("renda_familiar", "renda", "Q006"),
-        cor_barra = cor_prim
-      )
+      grafico_barras_pct(dados_q(), "Q007", cor_prim, unname(renda))
     })
     
     plot_moradores_obj <- reactive({
-      grafico_barras_pct(
-        participantes(),
-        candidatos_col = c("moradores", "qtd_moradores", "Q005"),
-        cor_barra = cor_sec
-      )
+      grafico_barras_pct(dados_q(), "Q005", cor_sec, as.character(1:20))
     })
     
     plot_internet_obj <- reactive({
-      grafico_barras_pct(
-        participantes(),
-        candidatos_col = c("internet", "acesso_internet", "Q025"),
-        cor_barra = cor_prim
-      )
+      grafico_barras_pct(dados_q(), "Q020", cor_prim, unname(wifi))
     })
     
     plot_computador_obj <- reactive({
-      grafico_barras_pct(
-        participantes(),
-        candidatos_col = c("computador", "acesso_computador", "Q024"),
-        cor_barra = cor_sec
-      )
+      grafico_barras_pct(dados_q(), "Q021", cor_sec, unname(comp))
     })
     
     plot_transporte_obj <- reactive({
-      grafico_barras_pct(
-        participantes(),
-        candidatos_col = c("transporte", "meio_transporte", "deslocamento"),
-        cor_barra = cor_dest
-      )
+      grafico_barras_pct(dados_q(), "Q011", cor_dest, unname(carro))
+    })
+    
+    plot_moto_obj <- reactive({
+      grafico_barras_pct(dados_q(), "Q012", cor_sec, unname(moto))
     })
     
     output$plot_esc_resp   <- plotly::renderPlotly({ plot_esc_resp_obj() })
@@ -388,6 +378,9 @@ socioeconomicoServer <- function(id, participantes) {
     output$plot_internet   <- plotly::renderPlotly({ plot_internet_obj() })
     output$plot_computador <- plotly::renderPlotly({ plot_computador_obj() })
     output$plot_transporte <- plotly::renderPlotly({ plot_transporte_obj() })
+    
+    output$plot_moto  <- plotly::renderPlotly({ plot_moto_obj() })
+    output$modal_moto <- plotly::renderPlotly({ plot_moto_obj() })
     
     abrir_modal <- function(titulo, output_modal_id) {
       showModal(
@@ -415,6 +408,7 @@ socioeconomicoServer <- function(id, participantes) {
     observeEvent(input$expand_moradores,  { abrir_modal("Moradores no domicílio", "modal_moradores") })
     observeEvent(input$expand_internet,   { abrir_modal("Acesso à internet", "modal_internet") })
     observeEvent(input$expand_computador, { abrir_modal("Acesso a computador", "modal_computador") })
-    observeEvent(input$expand_transporte, { abrir_modal("Meio de transporte / deslocamento", "modal_transporte") })
+    observeEvent(input$expand_transporte, { abrir_modal("Carro no domicílio", "modal_transporte") })
+    observeEvent(input$expand_moto,       { abrir_modal("Motocicleta no domicílio", "modal_moto") })
   })
 }
