@@ -35,11 +35,49 @@ Analisar os microdados do ENEM no estado de Alagoas, investigando possíveis ass
 
 ## Descrição da base
 
+A base de dados utilizada neste trabalho é referente aos participantes do ENEM 2024 no estado de Alagoas. Para a realização da análise, foram utilizados dois arquivos: um com informações sobre os participantes e outro com informações sobre as escolas.
+
+O primeiro arquivo contém dados sobre o perfil dos participantes, incluindo características demográficas, condições socioeconômicas e informações sobre sua trajetória escolar. Já o segundo contém informações sobre as escolas, como dependência administrativa, localização e situação de funcionamento.
+
 ## Seleção das variáveis
+
+As variáveis foram selecionadas de acordo com os objetivos da análise, considerando informações que permitissem conhecer melhor o perfil dos participantes e suas condições socioeconômicas e educacionais.
+
+Foram utilizadas variáveis como faixa etária, sexo, cor/raça, estado civil e nacionalidade. Também foram consideradas informações sobre a escolaridade dos participantes e de seus responsáveis, o tipo de escola frequentada no Ensino Médio e a situação de conclusão dessa etapa.
+
+Além disso, foram selecionadas variáveis relacionadas à renda familiar, à ocupação dos responsáveis, à quantidade de moradores no domicílio e ao acesso a bens e serviços, como internet, computador, celular, carro e motocicleta. Essas informações foram utilizadas para analisar possíveis relações entre as condições socioeconômicas e as características educacionais dos participantes.
 
 ## Tratamento e limpeza dos dados
 
+Inicialmente, foram importados os dois arquivos e as colunas utilizadas na análise tiveram seus nomes renomeados para facilitar sua identificação. Em seguida, as variáveis que estavam representadas por códigos numéricos ou alfabéticos foram transformadas em categorias descritivas, facilitando a interpretação dos dados e a construção dos gráficos.
+
+Também foram agrupadas algumas categorias para facilitar as comparações durante a análise, como as faixas de renda familiar, a escolaridade dos responsáveis e a quantidade de moradores no domicílio.
+
+Por fim, foi realizado o ajuste da codificação dos nomes dos municípios, corrigindo problemas relacionados à acentuação dos caracteres.
+
 ## Considerações sobre os dados ausentes
+
+Após o tratamento inicial, foi realizada uma verificação dos valores ausentes em cada coluna das duas bases. Essa verificação permitiu identificar a presença de informações faltantes, principalmente na variável referente à condição de treineiro dos participantes.
+
+Também foram feitas verificações nas variáveis de faixa etária e dependência administrativa, desconsiderando os registros sem informação nessas categorias nas respectivas contagens e análises.
+
+## Bibliotecas utilizadas
+
+Para o desenvolvimento do projeto, foram utilizadas bibliotecas do R com funções voltadas à importação, manipulação e visualização dos dados, além da construção do painel interativo.
+
+- **readr:** utilizada na importação dos arquivos de dados em formato CSV.
+
+- **tidyverse:** utilizada na manipulação e organização dos dados, incluindo seleção, filtragem, transformação e agrupamento de variáveis.
+
+- **scales:** utilizada na formatação de valores e escalas dos gráficos, como a apresentação de percentuais.
+
+- **shiny:** utilizada na construção do painel interativo, o que inclui a organização das páginas, os filtros por município e a navegação entre as seções.
+
+- **sf:** utilizada no tratamento de dados espaciais para a representação geográfica dos municípios.
+
+- **leaflet:** utilizada na construção de mapas interativos.
+
+- **plotly:** utilizada na criação de gráficos interativos, permitindo a visualização de informações adicionais ao passar o cursor sobre os gráficos.
 
 # Exploração inicial das variáveis
 
@@ -51,11 +89,15 @@ Analisar os microdados do ENEM no estado de Alagoas, investigando possíveis ass
 grafico_faixa_etaria
 ```
 
+Os participantes do ENEM em Alagoas no ano de 2024 se concentram na faixa etária de 18 anos, com cerca de metade dos candidatos tendo 19 anos ou menos. Nota-se uma redução na quantidade de candidatos de forma diretamente proporcional à idade.
+
 #### Gênero
 
 ```{r}
 grafico_sexo
 ```
+
+Cerca de 60% dos candidatos do ENEM em Alagoas em 2024 eram mulheres. Não é possível discernir acerca do desempenho deles. Apenas da distribuição.
 
 #### Cor/raça
 
@@ -63,11 +105,15 @@ grafico_sexo
 grafico_raca
 ```
 
+A maioria dos candidatos da prova de 2024 eram pardos (56%), 27% eram brancos e 11% se declararam pretos.
+
 #### Treineiro
 
 ```{r}
 grafico_treineiro
 ```
+
+Configura-se como treineiro (16%) dos participantes. Essa mesma amostra será detectada na variável de conclusão do Ensino Médio até 2024.
 
 #### Estado civil
 
@@ -85,6 +131,8 @@ knitr::kable(tabela_estado_civil)
 :::
 :::::
 
+87% dos candidatos eram solteiros, o que condiz com a expectativa acerca da faixa etária que participava do exame
+
 #### Nacionalidade
 
 ::::: {style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 16px 0 24px 0;"}
@@ -101,7 +149,7 @@ knitr::kable(tabela_nacionalidade)
 :::
 :::::
 
-#### Tipo de instituição que concluiu/concluirá o Ensino Médio
+Quase 100% dos participantes do ENEM são brasileiros, 97% são natos e 2% são naturalizados
 
 #### Situação de conclusão do Ensino Médio
 
@@ -110,6 +158,8 @@ grafico_conclusao
 ```
 
 #### Ano de Conclusão do Ensino Médio
+
+Cerca de 85% dos candidatos ja possuem o ensino médio concluído ou concluem em 2024, ou seja, cerca de 15% não possuem o ensino médio concluído até o fim do exame.
 
 ## Perfil socioecônomico
 
@@ -122,6 +172,8 @@ grafico_renda
 ```{r}
 knitr::kable(tabela_renda)
 ```
+
+Existe uma parcela relevante da amostra (14%) que não possuem forma alguma de renda, enquanto quase metade (45%) das familias dos participantes viviam com um salário mínimo ou menos. 15% das famílias vivem com até 2 salários mínimos. Isso significa que cerca de 65% das famílias dos candidatos vivem com menos de 2 salário ao mês.
 
 #### Tipo de escola do Ensino Médio
 
@@ -146,6 +198,8 @@ knitr::kable(tabela_escola_geral)
 ```{r}
 grafico_escolaridade_responsaveis
 ```
+
+É possível perceber que a quantidade de "não sei" para os homens é mais de duas vezes maior do que para as mulheres responsáveis, além de que as mulheres estão mais presentes em níveis de ensino superior/pós graduação, ainda que a presença delas nas ocupações de cargos de nível superior seja equivalente à dos homens Em geral, é possível observar que as mulheres são, em média, no estado de AL, mais escolarizadas que seus pares homens, dado que a presença deles é superior apenas nos níveis de fundamental I e II incompletos e "nunca estudou".
 
 **Ocupação dos responsáveis**
 
@@ -177,11 +231,23 @@ knitr::kable(tabela_mae_ocup)
 :::
 :::::
 
+Grupo 1: Agropecuária / Extrativismo;\
+Grupo 2: Serviços gerais / Comércio / Doméstico;\
+Grupo 3: Indústria / Construção / Transporte;\
+Grupo 4: Técnico / Professor / Autônomo / Microemp; \
+Grupo 5: Nível superior / Direção / Alta patente.
+
+Quase 30% dos pais das famílias dos candidatos daquele ano trabalhavam em áreas ligadas ao setor extrativista, 20% no setor de serviços, 19% em trabalhos técnicos/indústria, 13% em setores técnicos especializados e 5% em ofícios de nível superior e altos cargos. Existe uma quantidade relevante de "não sabe", equivalente a 17%. Associando essa variável à renda por meio do V de Cramér, foi possível obter um valor equivalente a 0,322 com um df\* de 5, o que indica que existe uma forte associação entre a ocupação do pai/homem responsável com a renda da família.
+
+As mulheres estão mais presentes em relação aos homens no setor de serviços (38%), seguido de atividades agropecuárias e extrativistas (24%), setor técnico especializado (17%), 4% está na indústria e 4% figura em altos cargos ou de nível superior. Observa-se que existe uma diferença relevante nos papéis de gênero no mercado de trabalho, com as mulheres menos presentes nas indústrias e em trabalhos ligados ao extrativismo/agropecuária, mas mais presentes em cargos técnicos e no setor de serviços do que os homens. Existe uma quantidade menor, mas ainda relevante de "não sabe", que corresponde a 12% das respostas. Associando a ocupação da mãe com a renda familiar através do V de Cramér, obteve-se um valor muito semelhante ao dos homens, de 0,31, com mesmo df\*, implicando que tanto para os homens, quanto para as mulheres responsáveis, existe uma associação forte entre suas ocupações e a renda familiar dos candidatos no Alagoas em 2024.
+
 **Renda familiar e composição domiciliar**
 
 ```{r}
 grafico_renda_moradores
 ```
+
+Existe uma tendência de que quanto mais pessoas moram na casa até 4 pessoas, as faixas de maiores rendas crescem. Isso pode sugerir que existem mais pessoas contribuindo para a renda familiar. Apesar disso, a correlação encontrada através do coeficiente de Spearman resultou em um valor considerado desprezível (0,057), mostrando que não há correlação relevante entre renda e quantidade de moradores nas famílias dos candidatos do ENEM 2024 em Alagoas.
 
 **Associações com escolaridade da mãe**
 
@@ -193,48 +259,124 @@ grafico_mae_renda
 grafico_mae_escola
 ```
 
+O V de Cramér de 0,222 e um df\* de 5, mostra uma associação de força moderada a forte entre a escolaridade da mãe e o tipo de escola que o filho frequenta. Ou seja, filhos de mães mais escolarizadas tendem a ter maiores chances de estudarem em escolas particulares do que filhos de mães menos escolarizadas
+
+Já na correlação entre escolaridade da mãe e renda familia, o teste de Spearman resultou em um coeficiente de 0,467, indicando uma associação de força também moderada a forte entre a escolaridade da mãe e a renda familiar.
+
 #### Acesso à tecnologia
 
-- Internet por rede WI-FI
+**Internet por rede WI-FI**
 
-- Computador/Notebook
+```{r}
+grafico_wifi
+```
 
-- Telefone Celular
+85% dos candidatos no ENEM de AL em 2024 possuíam acesso à internet em casa, o que significa que uma parcela relevante de 15% dos alunos não possuíam nenhuma forma de conexão com a internet em seus domicílios. V de Cramér = 0,317; df\* = 1 indica associação moderada entre essa variável e renda.
+
+**Computador/Notebook**
+
+```{r}
+grafico_comp
+```
+
+67% dos candidatos não possuíam nenhum computador ou notebook em casa, enquanto 25% possuíam apenas um, 5% possuíam 2, 2% possuíam 3 e apenas 0,64% possuíam 4 ou mais. Essa variável apresentou uma associação particularmente forte com a renda, tendo uma das associações mais fortes entre si. (V de Cramér = 0,383; df\* = 4). Isso significa que ter ou não um computador em casa e quantos indica de forma relativamente consistente o nível aquisitivo daquela família.
+
+**Telefone Celular**
+
+```{r}
+grafico_celular
+```
+
+Apenas 3% dos lares dos candidatos ao ENEM de Alagoas no ano de 2024 não possuíam nenhum telefone celular em casa. 25% possuíam apenas um, 30% possuíam dois, 25% possuíam 3, enquanto 18% possuíam quatro ou mais. Ainda que o V de Cramér = 0,263; df\* = 4 indique uma associação forte entre a quantidade de celulares e a renda familiar, é possível afirmar que é um indicador de renda menos robusto do que a posse de computadores na residência, o que mostra que os celulares se apresentam como meios mais democráticos de acesso à tecnologia do que os computadores.
 
 #### Acesso à mobilidade
 
-- Carro
+```{r}
+grafico_carro
+```
 
-- Moto
+73% das famílias dos candidatos não possuíam carro em 2024, 23% possuíam apenas um, enquanto 4% possuía dois ou mais o que mostra que o carro é um bem relativamente inacessível para a população. O V de Cramér = 0,4279; df\* = 4 corrobora essa interpretação. Entre todas as variáveis categóricas analisadas via V de Crámer,, ter ou não carros é o fator que mais se associa à renda familiar, sendo a melhor para distinguir o estrato econômico de um candidato.
+
+```{r}
+grafico_moto
+```
+
+75% das famílias não possuíam motocicletas, 23% possuíam uma e 2% possuíam duas ou mais. O V de Cramér = 0,0887; df\* = 3 mostra que a associação entre ter motocicleta e a renda é fraca, o que significa que essa variável não discerne de forma consistente os participantes em relação à renda familiar, além de sugerir que motocicletas são meios de transporte mais acessíveis e democratizados
 
 ## Características das escolas
 
 #### Dependência administrativa
 
+```{r}
+grafico_dependencia
+```
+
+Em relação à dependência administrativa, observa-se uma predominância das escolas estaduais, que representam 80,9% dos registros, com 25.755 ocorrências. Em seguida, aparecem as escolas privadas, com 4.070 registros (12,8%), e as federais, com 1.996 (6,3%). Dessa forma, a maior parte dos registros da base corresponde à rede estadual de ensino.
+
 #### Localização
 
+```{r}
+grafico_localizacao
+```
+
+Quanto à localização, a maioria das escolas está situada na zona urbana, que representa 94,6% dos registros, com 30.097 ocorrências. Já as escolas rurais correspondem a 5,4%, com 1.724 registros. Assim, observa-se uma concentração expressiva de escolas localizadas em áreas urbanas.
+
 #### Situação de funcionamento
+
+```{r}
+grafico_situacao
+```
+
+Antes do tratamento dos valores ausentes, 64,2% dos registros não apresentavam informações sobre a situação de funcionamento das escolas, enquanto 35,8% possuíam essa informação. Após a retirada dos valores faltantes para essa análise, foram considerados 31.821 registros, todos correspondentes a escolas em atividade.
+
+Dessa forma, apesar de todos os registros válidos indicarem escolas em atividade, a quantidade de dados não informados na base original limita essa análise. Portanto, não é possível afirmar que todas as escolas participantes estavam em atividade, mas apenas que essa foi a situação identificada em todos os registros com informação disponível.
 
 # Análise dos resultados
 
 ## Presença
 
-## Resultados (médias)
+```{r}
+grafico_presenca
+```
 
-- media geral e por área
+A condição de presença apresenta resultados semelhantes entre as quatro áreas do conhecimento. Em todas elas, a maior parte dos participantes esteve presente na prova, com percentuais entre aproximadamente 70% e 74%. Já os participantes que faltaram representam cerca de 26% a 30% dos registros. Assim, observa-se que a maioria compareceu às provas, embora a quantidade de ausências também seja significativa.
 
-- redacao
+## Resultados 
 
-- ranking dos x melhores e x piores municípios
+```{r}
+grafico_resultados
+```
+
+A distribuição das notas apresenta diferenças entre as áreas do conhecimento e a redação. Nas provas de Ciências da Natureza, Ciências Humanas, Linguagens e Matemática, as notas estão mais concentradas entre aproximadamente 400 e 575 pontos, com medianas entre 460 e 510 pontos. A redação, por outro lado, apresenta valores mais elevados, com mediana próxima de 620 pontos e maior concentração de notas entre 480 e 760 pontos.
+
+Também é possível observar valores atípicos em todas as áreas, com notas próximas de zero e outras bastante elevadas. Dessa forma, a distribuição das notas não é uniforme, apresentando diferenças tanto entre as áreas quanto entre os participantes.
 
 ## Desempenho
 
-- Média geral por depedencia adm
+```{r}
+grafico_desempenho
+```
 
-- Media por localizacao
+Ao comparar as médias por dependência administrativa, observa-se que as escolas estaduais apresentam os menores resultados em todas as áreas, enquanto as escolas privadas possuem as maiores médias. As escolas federais apresentam resultados intermediários.
 
-- Media por situ
+A maior diferença aparece na redação, em que a média das escolas estaduais é de 502,3 pontos, enquanto a das federais é de 704,4 e a das privadas, de 754,1 pontos. Em Matemática, também há uma diferença expressiva, com médias de 466,2 nas escolas estaduais, 548,6 nas federais e 580,1 nas privadas.
 
-- Os x piores e melhores municipios, como eles sao? (dependencia, local situ, presenca)
+Portanto, os resultados mostram diferenças nas médias de acordo com a dependência administrativa, com desempenho médio superior nas escolas privadas e federais em comparação às estaduais. Essa comparação, entretanto, não permite afirmar que a dependência administrativa seja a causa dessas diferenças.
 
-## Conclusão
+# Conclusão
+
+A análise dos microdados do ENEM 2024 em Alagoas permitiu identificar diferenças no perfil dos participantes e associações entre suas condições socioeconômicas e educacionais. Entre os resultados encontrados, destaca-se a relação entre a renda familiar e características como a escolaridade e a ocupação dos responsáveis, além do acesso a bens e serviços. A posse de computador e de carro, por exemplo, apresentou associações mais fortes com a renda familiar.
+
+Também foi possível observar que a escolaridade da mãe está associada tanto à renda familiar quanto ao tipo de escola frequentada pelo participante. Esses resultados mostram que as condições familiares estão relacionadas às oportunidades educacionais dos estudantes.
+
+Em relação ao desempenho, foram identificadas diferenças nas médias de acordo com a dependência administrativa das escolas. As escolas privadas e federais apresentaram médias superiores às estaduais em todas as áreas analisadas, com diferenças mais expressivas na redação.
+
+De modo geral, os resultados indicam que o desempenho dos participantes está inserido em um contexto que envolve diferentes condições sociais, econômicas e educacionais. Entretanto, é importante considerar que as associações identificadas não estabelecem relações de causa e efeito. Além disso, a presença de valores ausentes em algumas variáveis limita parte das análises realizadas.
+
+Assim, o trabalho permitiu explorar diferentes aspectos da realidade dos participantes do ENEM em Alagoas e identificar padrões que ajudam a compreender as desigualdades presentes no contexto educacional do estado.
+
+## Referências
+
+**R Core Team (2026).** *R: A Language and Environment for Statistical Computing*. R Foundation for Statistical Computing, Vienna, Austria. <https://www.R-project.org/>.
+
+**INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA (INEP).** Microdados do Exame Nacional do Ensino Médio (ENEM) 2024. Brasília, DF: Inep, 2025. Disponível em: [Microdados do ENEM](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem?utm_source=chatgpt.com). Acesso em: 26 nov. 2026.

@@ -1,10 +1,8 @@
 library(readr)
 library(tidyverse)
-library(dplyr)
-library(ggplot2)
 library(scales)
 
-
+##geovsns
 #paleta
 cor_principal  <- "#A6535D"
 cor_secundaria <- "#668596"
@@ -66,7 +64,7 @@ tema_empilhado <- tema_barras_verticais +
     legend.title = element_text(size = 9, color = cor_texto),
     legend.text = element_text(size = 8.5, color = cor_texto)
   )
-
+##taina
 # Importando  o Dataset
 dados_participantes <-  read.csv("dados/Participantes_AL.csv")
 dados_participantes
@@ -344,7 +342,7 @@ dados_participantes %>%
     pct_acumulado = round(cumsum(pct), 2)
   )
 
-
+##hagata
 # Faixa etária
 
 niveis_y <- c(
@@ -902,3 +900,372 @@ cat(sprintf("V de Cramér (Ocupação da mãe x Renda familiar): %.4f\n", v_cram
 #"Grupo 4: Técnico / Professor / Autônomo / Microemp.",
 #"Grupo 5: Nível superior / Direção / Alta patente"
 
+# Internet Wi-Fi
+tabela_wifi <- dados_participantes %>%
+  filter(!is.na(casa_internet_wifi)) %>%
+  count(casa_internet_wifi, name = "n") %>%
+  mutate(pct = round(100 * n / sum(n), 1))
+
+grafico_wifi <- tabela_wifi %>%
+  ggplot(aes(x = n, y = reorder(casa_internet_wifi, n))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_y_discrete(labels = c(
+    "A" = "Não",
+    "B" = "Sim"
+  )) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title = "Acesso a internet Wi-Fi no domicílio",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+tab_wifi_renda <- table(dados_participantes$casa_internet_wifi, dados_participantes$renda_familiar_mensal)
+chi2_wr <- chisq.test(tab_wifi_renda)$statistic
+v_cramer_wr <- sqrt(chi2_wr / (sum(tab_wifi_renda) * (min(dim(tab_wifi_renda)) - 1)))
+cat(sprintf("V de Cramér (Acesso à internet x Renda familiar): %.4f\n", v_cramer_wr))
+
+# Acesso a PC/notebook
+tabela_comp <- dados_participantes %>%
+  filter(!is.na(casa_comp_notebook)) %>%
+  count(casa_comp_notebook, name = "n") %>%
+  mutate(pct = round(100 * n / sum(n), 1))
+
+grafico_comp <- tabela_comp %>%
+  ggplot(aes(x = n, y = factor(casa_comp_notebook, levels = c("E", "D", "C", "B", "A")))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_y_discrete(labels = c(
+    "A" = "Não",
+    "B" = "Sim, um",
+    "C" = "Sim, dois",
+    "D" = "Sim, três",
+    "E" = "Sim, quatro ou mais"
+  )) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.28))) +
+  labs(
+    title = "Posse de computador ou notebook na residência",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+tab_comp_renda <- table(dados_participantes$casa_comp_notebook, dados_participantes$renda_familiar_mensal)
+chi2_cr <- chisq.test(tab_comp_renda)$statistic
+v_cramer_cr <- sqrt(chi2_cr / (sum(tab_comp_renda) * (min(dim(tab_comp_renda)) - 1)))
+cat(sprintf("V de Cramér (Computador/notebook x Renda familiar): %.4f\n", v_cramer_cr))
+
+# Celular
+tabela_celular <- dados_participantes %>%
+  filter(!is.na(tem_telefone_celular)) %>%
+  count(tem_telefone_celular, name = "n") %>%
+  mutate(pct = round(100 * n / sum(n), 1))
+
+grafico_celular <- tabela_celular %>%
+  ggplot(aes(x = n, y = factor(tem_telefone_celular, levels = c("E", "D", "C", "B", "A")))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_y_discrete(labels = c(
+    "A" = "Não",
+    "B" = "Sim, um",
+    "C" = "Sim, dois",
+    "D" = "Sim, três",
+    "E" = "Sim, quatro ou mais"
+  )) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.28))) +
+  labs(
+    title = "Posse de telefone celular na residência",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+tab_cel_renda <- table(dados_participantes$tem_telefone_celular, dados_participantes$renda_familiar_mensal)
+chi2_cel <- chisq.test(tab_cel_renda)$statistic
+v_cramer_cel <- sqrt(chi2_cel / (sum(tab_cel_renda) * (min(dim(tab_cel_renda)) - 1)))
+cat(sprintf("V de Cramér (Telefone celular x Renda familiar): %.4f\n", v_cramer_cel))
+
+# Carro
+tabela_carro <- dados_participantes %>%
+  filter(!is.na(tem_carro)) %>%
+  count(tem_carro, name = "n") %>%
+  mutate(pct = round(100 * n / sum(n), 1))
+
+grafico_carro <- tabela_carro %>%
+  ggplot(aes(x = n, y = factor(tem_carro, levels = c("E", "D", "C", "B", "A")))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_y_discrete(labels = c(
+    "A" = "Não",
+    "B" = "Sim, um",
+    "C" = "Sim, dois",
+    "D" = "Sim, três",
+    "E" = "Sim, quatro ou mais"
+  )) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.28))) +
+  labs(
+    title = "Posse de carro na residência",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+tab_carro_renda <- table(dados_participantes$tem_carro, dados_participantes$renda_familiar_mensal)
+chi2_carro <- chisq.test(tab_carro_renda)$statistic
+v_cramer_carro <- sqrt(chi2_carro / (sum(tab_carro_renda) * (min(dim(tab_carro_renda)) - 1)))
+cat(sprintf("V de Cramér (Posse de carro x Renda familiar): %.4f\n", v_cramer_carro))
+
+# Moto
+tabela_moto <- dados_participantes %>%
+  filter(!is.na(tem_motocicleta)) %>%
+  count(tem_motocicleta, name = "n") %>%
+  mutate(pct = round(100 * n / sum(n), 1))
+
+grafico_moto <- tabela_moto %>%
+  ggplot(aes(x = n, y = factor(tem_motocicleta, levels = c("E", "D", "C", "B", "A")))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_y_discrete(labels = c(
+    "A" = "Não",
+    "B" = "Sim, uma",
+    "C" = "Sim, duas",
+    "D" = "Sim, três",
+    "E" = "Sim, quatro ou mais"
+  )) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.28))) +
+  labs(
+    title = "Posse de motocicleta na residência",
+    subtitle = "Inscritos do ENEM 2024 em Alagoas",
+    x = "Número de inscritos",
+    y = NULL
+  ) +
+  tema_relatorio
+
+tab_moto_renda <- table(dados_participantes$tem_motocicleta, dados_participantes$renda_familiar_mensal)
+chi2_moto <- chisq.test(tab_moto_renda)$statistic
+v_cramer_moto <- sqrt(chi2_moto / (sum(tab_moto_renda) * (min(dim(tab_moto_renda)) - 1)))
+cat(sprintf("V de Cramér (Posse de motocicleta x Renda familiar): %.4f\n", v_cramer_moto))
+
+#########geovanna
+#denp
+grafico_dependencia <- dados_resultados %>%
+  filter(!is.na(dependencia_adminstrativa)) %>%
+  count(dependencia_adminstrativa, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = reorder(dependencia_adminstrativa, n))) +
+  geom_col(fill = cor_principal, width = 0.7) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title = "Dependência administrativa das escolas",
+    subtitle = "Registros na base de resultados do ENEM 2024 em Alagoas",
+    x = "Número de registros",
+    y = NULL
+  ) +
+  tema_relatorio
+
+#localização
+grafico_localizacao <- dados_resultados %>%
+  filter(!is.na(localizacao)) %>%
+  count(localizacao, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = reorder(localizacao, n))) +
+  geom_col(fill = cor_secundaria, width = 0.65) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title = "Localização das escolas",
+    subtitle = "Registros na base de resultados do ENEM 2024 em Alagoas",
+    x = "Número de registros",
+    y = NULL
+  ) +
+  tema_relatorio
+
+
+grafico_situacao <- dados_resultados %>%
+  filter(!is.na(situacao_funcionamento)) %>%
+  count(situacao_funcionamento, name = "n") %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ggplot(aes(x = n, y = reorder(situacao_funcionamento, n))) +
+  geom_col(fill = cor_destaque, width = 0.65) +
+  geom_text(
+    aes(label = sprintf("%s (%.1f%%)", format(n, big.mark = ".", decimal.mark = ","), pct)),
+    hjust = -0.15,
+    size = 3.2,
+    color = cor_texto
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.28))) +
+  labs(
+    title = "Situação de funcionamento das escolas",
+    subtitle = "Registros na base de resultados do ENEM 2024 em Alagoas",
+    x = "Número de registros",
+    y = NULL
+  ) +
+  tema_relatorio
+
+
+
+cols_presenca <- intersect(
+  c("TP_PRESENCA_CN", "TP_PRESENCA_CH", "TP_PRESENCA_LC", "TP_PRESENCA_MT"),
+  names(dados_resultados)
+)
+
+mapa_provas_pres <- c(
+  "TP_PRESENCA_CN" = "Ciências da Natureza",
+  "TP_PRESENCA_CH" = "Ciências Humanas",
+  "TP_PRESENCA_LC" = "Linguagens e Códigos",
+  "TP_PRESENCA_MT" = "Matemática"
+)
+
+mapa_status_pres <- c(
+  "0" = "Faltou à prova",
+  "1" = "Presente na prova",
+  "2" = "Eliminado na prova"
+)
+
+grafico_presenca <- dados_resultados %>%
+  select(all_of(cols_presenca)) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "prova",
+    values_to = "status_pres"
+  ) %>%
+  filter(!is.na(status_pres)) %>%
+  mutate(
+    prova = recode(prova, !!!mapa_provas_pres),
+    status_pres = recode(as.character(status_pres), !!!mapa_status_pres, .default = as.character(status_pres))
+  ) %>%
+  count(prova, status_pres, name = "n") %>%
+  group_by(prova) %>%
+  mutate(pct = 100 * n / sum(n)) %>%
+  ungroup() %>%
+  ggplot(aes(x = prova, y = pct, fill = status_pres)) +
+  geom_col(position = "fill", width = 0.6) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_fill_manual(values = c(
+    "Presente na prova"  = cor_secundaria,
+    "Faltou à prova"    = cor_principal,
+    "Eliminado na prova" = cor_destaque
+  )) +
+  labs(
+    title = "Condição de presença por área do conhecimento",
+    subtitle = "Participantes na base de resultados do ENEM 2024 em Alagoas",
+    x = NULL,
+    y = "Proporção",
+    fill = "Presença"
+  ) +
+  tema_empilhado +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+
+
+cols_notas <- c(
+  "NU_NOTA_CN",
+  "NU_NOTA_CH",
+  "NU_NOTA_LC",
+  "NU_NOTA_MT",
+  "NU_NOTA_REDACAO"
+)
+
+mapa_areas_notas <- c(
+  "NU_NOTA_CN"      = "Ciências da Natureza",
+  "NU_NOTA_CH"      = "Ciências Humanas",
+  "NU_NOTA_LC"      = "Linguagens",
+  "NU_NOTA_MT"      = "Matemática",
+  "NU_NOTA_REDACAO" = "Redação"
+)
+
+dados_notas_long <- dados_resultados %>%
+  select(any_of(c("dependencia_adminstrativa", cols_notas))) %>%
+  pivot_longer(
+    cols = any_of(cols_notas),
+    names_to = "area_cod",
+    values_to = "nota"
+  ) %>%
+  filter(!is.na(nota)) %>%
+  mutate(area = factor(recode(area_cod, !!!mapa_areas_notas), levels = unname(mapa_areas_notas)))
+
+grafico_resultados <- dados_notas_long %>%
+  ggplot(aes(x = area, y = nota)) +
+  geom_boxplot(fill = cor_destaque, color = cor_texto, outlier.alpha = 0.15, width = 0.55) +
+  labs(
+    title = "Distribuição das notas por área e redação",
+    subtitle = "Base de resultados do ENEM 2024 em Alagoas",
+    x = NULL,
+    y = "Nota"
+  ) +
+  tema_barras_verticais +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+
+
+resumo_desempenho <- dados_notas_long %>%
+  filter(!is.na(dependencia_adminstrativa)) %>%
+  group_by(dependencia_adminstrativa, area) %>%
+  summarise(media = mean(nota, na.rm = TRUE), .groups = "drop")
+
+grafico_desempenho <- resumo_desempenho %>%
+  ggplot(aes(x = area, y = media, fill = dependencia_adminstrativa)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.65) +
+  geom_text(
+    aes(label = sprintf("%.1f", media)),
+    position = position_dodge(width = 0.75),
+    vjust = -0.4,
+    size = 3.0,
+    color = cor_texto
+  ) +
+  scale_fill_manual(values = c(
+    "Privada"   = cor_principal,
+    "Federal"   = cor_secundaria,
+    "Estadual"  = cor_destaque,
+    "Municipal" = cor_areia
+  )) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(
+    title = "Desempenho médio por dependência administrativa",
+    subtitle = "Média das notas por área e redação — ENEM 2024 (Alagoas)",
+    x = NULL,
+    y = "Nota média",
+    fill = "Dependência"
+  ) +
+  tema_empilhado +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
